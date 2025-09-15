@@ -3,6 +3,72 @@
 @inject IHttpClientFactory ClientFactory
 @inject NavigationManager Nav
 
+ codex/fix-delete-and-post-in-swagger-d3btyi
+<div class="page-wrapper">
+    <nav class="sidebar">
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/users">Users</a></li>
+        </ul>
+    </nav>
+
+    <div class="page-container">
+        <h3>Users</h3>
+
+        <form class="user-form">
+            <input @bind="newUser.Name" placeholder="Name" />
+            <input type="number" @bind="newUser.Age" placeholder="Age" />
+            <input type="password" @bind="newUser.Password" placeholder="Password" />
+            <button type="button" @onclick="CreateUser">Add</button>
+        </form>
+
+        <ul class="user-list">
+            @foreach (var u in users)
+            {
+                <li>
+                    <span>@u.Name (@u.Age)</span>
+                    <button type="button" @onclick="@(() => DeleteUser(u.Id!))">Delete</button>
+                </li>
+            }
+        </ul>
+    </div>
+</div>
+
+<style>
+    .page-wrapper {
+        display: flex;
+        min-height: 100vh;
+        font-family: Arial, sans-serif;
+    }
+
+    .sidebar {
+        width: 200px;
+        padding: 1rem;
+        background: linear-gradient(180deg, #4b6cb7, #182848);
+        color: #fff;
+    }
+
+    .sidebar ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .sidebar li {
+        margin-bottom: 1rem;
+    }
+
+    .sidebar a {
+        color: #fff;
+        text-decoration: none;
+    }
+
+    .page-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      
 <div class="page-container">
     <h3>Users</h3>
 
@@ -30,6 +96,7 @@
         flex-direction: column;
         align-items: center;
         font-family: Arial, sans-serif;
+ master
         padding-top: 2rem;
     }
 
@@ -62,7 +129,7 @@
 </style>
 
 @code {
-    private HttpClient http;
+    private HttpClient http = default!;
     private List<User> users = new();
     private UserCreateDto newUser = new();
 

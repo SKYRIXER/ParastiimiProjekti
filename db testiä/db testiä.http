@@ -1,0 +1,6 @@
+@db_testiä_HostAddress = http://localhost:5062
+
+GET {{db_testiä_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

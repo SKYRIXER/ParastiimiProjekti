@@ -7,7 +7,7 @@ namespace db_testiä.Models
     {
         [BsonId]  // MongoDB:n ObjectId
         [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         public string Name { get; set; }
         public int Age { get; set; }

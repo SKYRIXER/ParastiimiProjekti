@@ -34,7 +34,12 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Enable CORS before other middleware that might reject the request
+// Serve the framework's static assets and component files
+app.UseStaticFiles();
+
+app.UseRouting();
+
+// Enable CORS in the recommended position between routing and authorization
 app.UseCors("AllowAll");
 
 app.UseAuthorization();

@@ -1,0 +1,93 @@
+@inherits LayoutComponentBase
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Routing
+
+<div class="page-wrapper">
+    <nav class="sidebar">
+        <h2>User dashboard</h2>
+        <NavLink href="/" Match="NavLinkMatch.All" class="nav-link">Home</NavLink>
+        <NavLink href="/users" class="nav-link">Users</NavLink>
+    </nav>
+
+    <main class="page-container">
+        @Body
+    </main>
+</div>
+
+<style>
+    .page-wrapper {
+        display: flex;
+        min-height: 100vh;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #f5f7fb;
+    }
+
+    .sidebar {
+        width: 220px;
+        padding: 2rem 1.5rem;
+        background: linear-gradient(180deg, #4b6cb7, #182848);
+        color: #fff;
+        box-shadow: 4px 0 18px rgba(24, 40, 72, 0.2);
+    }
+
+    .sidebar h2 {
+        font-size: 1.3rem;
+        margin-bottom: 1.5rem;
+        font-weight: 600;
+    }
+
+    .nav-link {
+        display: block;
+        margin-bottom: 0.75rem;
+        color: #e7ecff;
+        text-decoration: none;
+        padding: 0.55rem 0.75rem;
+        border-radius: 8px;
+        transition: background-color 0.2s ease, color 0.2s ease;
+        font-weight: 500;
+    }
+
+    .nav-link:hover {
+        background-color: rgba(255, 255, 255, 0.18);
+        color: #fff;
+    }
+
+    .nav-link.active {
+        background-color: rgba(255, 255, 255, 0.28);
+        color: #fff;
+        font-weight: 600;
+    }
+
+    .page-container {
+        flex: 1;
+        padding: 2.5rem;
+    }
+
+    @media (max-width: 768px) {
+        .page-wrapper {
+            flex-direction: column;
+        }
+
+        .sidebar {
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            row-gap: 0.5rem;
+        }
+
+        .sidebar h2 {
+            flex-basis: 100%;
+            text-align: center;
+        }
+
+        .nav-link {
+            margin: 0 0.5rem;
+        }
+
+        .page-container {
+            padding: 1.5rem 1rem;
+        }
+    }
+</style>

@@ -1,0 +1,14 @@
+@using Microsoft.AspNetCore.Components.Routing
+@using db_testiä.Shared
+
+<Router AppAssembly="@typeof(Program).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+    </Found>
+    <NotFound>
+        <LayoutView Layout="@typeof(MainLayout)">
+            <h1>Page not found</h1>
+            <p>Sorry, we couldn't find the page you requested.</p>
+        </LayoutView>
+    </NotFound>
+</Router>

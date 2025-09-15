@@ -3,7 +3,7 @@
 @inject IHttpClientFactory ClientFactory
 @inject NavigationManager Nav
 
- codex/fix-delete-and-post-in-swagger-d3btyi
+
 <div class="page-wrapper">
     <nav class="sidebar">
         <ul>
@@ -68,35 +68,6 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-      
-<div class="page-container">
-    <h3>Users</h3>
-
-    <form @onsubmit="CreateUser" @onsubmit:preventDefault class="user-form">
-        <input @bind="newUser.Name" placeholder="Name" />
-        <input type="number" @bind="newUser.Age" placeholder="Age" />
-        <input type="password" @bind="newUser.Password" placeholder="Password" />
-        <button type="submit">Add</button>
-    </form>
-
-    <ul class="user-list">
-        @foreach (var u in users)
-        {
-            <li>
-                <span>@u.Name (@u.Age)</span>
-                <button type="button" @onclick="() => DeleteUser(u.Id)">Delete</button>
-            </li>
-        }
-    </ul>
-</div>
-
-<style>
-    .page-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        font-family: Arial, sans-serif;
- master
         padding-top: 2rem;
     }
 

@@ -9,8 +9,8 @@ namespace db_testiä.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public string? Id { get; set; }
 
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
         public int Age { get; set; }
-        public string PasswordHash { get; set; }
+        public string PasswordHash { get; set; } = string.Empty;
     }
 }

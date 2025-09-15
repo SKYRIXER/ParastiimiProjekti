@@ -1,0 +1,77 @@
+@page "/"
+@inject NavigationManager Nav
+
+<section class="home">
+    <h1>Welcome!</h1>
+    <p class="lead">Use this dashboard to view, create and remove users from the MongoDB database.</p>
+    <p>The <strong>Users</strong> section provides a live view of every user stored in the backend API. Add new entries with the form, and delete users that are no longer needed with a single click.</p>
+
+    <button class="primary" type="button" @onclick="NavigateToUsers">Go to user management</button>
+</section>
+
+<style>
+    .home {
+        max-width: 720px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        padding: 2.5rem 2rem;
+        border-radius: 16px;
+        box-shadow: 0 12px 35px rgba(24, 40, 72, 0.18);
+        text-align: center;
+    }
+
+    .home h1 {
+        font-size: 2.1rem;
+        margin-bottom: 1rem;
+        color: #1f2a44;
+    }
+
+    .lead {
+        font-size: 1.1rem;
+        margin-bottom: 1.25rem;
+        color: #4c5d7a;
+    }
+
+    .home p {
+        color: #4c5d7a;
+        line-height: 1.6;
+        margin-bottom: 1.25rem;
+    }
+
+    .primary {
+        appearance: none;
+        border: none;
+        padding: 0.85rem 1.75rem;
+        border-radius: 999px;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #fff;
+        background: linear-gradient(135deg, #4b6cb7, #182848);
+        cursor: pointer;
+        box-shadow: 0 8px 20px rgba(24, 40, 72, 0.35);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 24px rgba(24, 40, 72, 0.4);
+    }
+
+    .primary:active {
+        transform: translateY(1px);
+        box-shadow: 0 6px 18px rgba(24, 40, 72, 0.28);
+    }
+
+    @media (max-width: 600px) {
+        .home {
+            padding: 2rem 1.25rem;
+        }
+    }
+</style>
+
+@code {
+    private void NavigateToUsers()
+    {
+        Nav.NavigateTo("/users");
+    }
+}

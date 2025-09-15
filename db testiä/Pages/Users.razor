@@ -1,131 +1,414 @@
-@page "/"
 @page "/users"
 @inject IHttpClientFactory ClientFactory
 @inject NavigationManager Nav
 
+<section class="users">
+    <header class="users__header">
+        <h1>User management</h1>
+        <p>Fetch, add and remove users directly through the backend API.</p>
+    </header>
 
-<div class="page-wrapper">
-    <nav class="sidebar">
-        <ul>
-            <li><a href="/">Home</a></li>
-            <li><a href="/users">Users</a></li>
-        </ul>
-    </nav>
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert--error">@errorMessage</div>
+    }
+    else if (!string.IsNullOrEmpty(successMessage))
+    {
+        <div class="alert alert--success">@successMessage</div>
+    }
 
-    <div class="page-container">
-        <h3>Users</h3>
+    <section class="card">
+        <h2>Add a new user</h2>
+        <div class="form-grid">
+            <label>
+                Name
+                <input @bind="newUser.Name" @bind:event="oninput" placeholder="Jane Doe" />
+            </label>
+            <label>
+                Age
+                <input type="number" min="1" @bind="newUser.Age" @bind:event="oninput" placeholder="30" />
+            </label>
+            <label>
+                Password
+                <input type="password" @bind="newUser.Password" @bind:event="oninput" placeholder="Secret password" />
+            </label>
+        </div>
+        <button type="button" class="primary" @onclick="CreateUser" disabled="@(!CanSubmit || isSubmitting)">
+            @(isSubmitting ? "Saving..." : "Add user")
+        </button>
+    </section>
 
-        <form class="user-form">
-            <input @bind="newUser.Name" placeholder="Name" />
-            <input type="number" @bind="newUser.Age" placeholder="Age" />
-            <input type="password" @bind="newUser.Password" placeholder="Password" />
-            <button type="button" @onclick="CreateUser">Add</button>
-        </form>
+    <section class="card">
+        <h2>Existing users</h2>
 
-        <ul class="user-list">
-            @foreach (var u in users)
-            {
-                <li>
-                    <span>@u.Name (@u.Age)</span>
-                    <button type="button" @onclick="@(() => DeleteUser(u.Id!))">Delete</button>
-                </li>
-            }
-        </ul>
-    </div>
-</div>
+        @if (isLoading)
+        {
+            <p class="muted">Loading users...</p>
+        }
+        else if (users.Count == 0)
+        {
+            <p class="muted">No users found yet. Add the first user with the form above.</p>
+        }
+        else
+        {
+            <ul class="user-list">
+                @foreach (var u in users.OrderBy(user => user.Name))
+                {
+                    var hasId = !string.IsNullOrEmpty(u.Id);
+                    var isDeleting = hasId && deletingUserIds.Contains(u.Id!);
+
+                    <li class="user-item">
+                        <div class="user-details">
+                            <span class="user-name">@u.Name</span>
+                            <span class="user-age">@u.Age years</span>
+                        </div>
+                        <button type="button" class="danger" disabled="@(!hasId || isDeleting)" @onclick="@(() => DeleteUser(u.Id))">
+                            @(isDeleting ? "Removing..." : "Delete")
+                        </button>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+</section>
 
 <style>
-    .page-wrapper {
+    .users {
+        max-width: 860px;
+        margin: 0 auto;
         display: flex;
-        min-height: 100vh;
-        font-family: Arial, sans-serif;
+        flex-direction: column;
+        gap: 1.5rem;
     }
 
-    .sidebar {
-        width: 200px;
-        padding: 1rem;
-        background: linear-gradient(180deg, #4b6cb7, #182848);
-        color: #fff;
-    }
-
-    .sidebar ul {
-        list-style: none;
-        padding: 0;
+    .users__header h1 {
         margin: 0;
+        font-size: 2rem;
+        color: #1f2a44;
     }
 
-    .sidebar li {
-        margin-bottom: 1rem;
+    .users__header p {
+        margin-top: 0.35rem;
+        color: #4c5d7a;
     }
 
-    .sidebar a {
-        color: #fff;
-        text-decoration: none;
+    .card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 1.75rem;
+        box-shadow: 0 12px 32px rgba(24, 40, 72, 0.12);
     }
 
-    .page-container {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding-top: 2rem;
-    }
-
-    .user-form {
-        display: flex;
-        flex-direction: column;
-        width: 300px;
-        gap: 0.5rem;
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
         margin-bottom: 1.5rem;
     }
 
-    .user-form input {
-        padding: 0.5rem;
+    label {
+        display: flex;
+        flex-direction: column;
+        font-weight: 600;
+        color: #2f3b58;
+    }
+
+    input {
+        margin-top: 0.5rem;
+        padding: 0.65rem 0.75rem;
+        border-radius: 10px;
+        border: 1px solid #c8d1ea;
+        font-size: 0.95rem;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    input:focus {
+        outline: none;
+        border-color: #4b6cb7;
+        box-shadow: 0 0 0 3px rgba(75, 108, 183, 0.2);
+    }
+
+    .primary {
+        align-self: flex-start;
+        appearance: none;
+        border: none;
+        border-radius: 12px;
+        padding: 0.75rem 1.6rem;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #fff;
+        background: linear-gradient(135deg, #4b6cb7, #182848);
+        cursor: pointer;
+        box-shadow: 0 10px 24px rgba(24, 40, 72, 0.25);
+        transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+    }
+
+    .primary:disabled {
+        cursor: default;
+        opacity: 0.6;
+        box-shadow: none;
+    }
+
+    .primary:not(:disabled):hover {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 28px rgba(24, 40, 72, 0.35);
     }
 
     .user-list {
         list-style: none;
+        margin: 0;
         padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
     }
 
-    .user-list li {
+    .user-item {
         display: flex;
+        align-items: center;
         justify-content: space-between;
-        width: 300px;
-        margin-bottom: 0.5rem;
-        background-color: #f0f0f0;
-        padding: 0.5rem;
-        border-radius: 4px;
+        background: #f7f9ff;
+        border-radius: 12px;
+        padding: 0.95rem 1.1rem;
+        border: 1px solid #d8e1f7;
+    }
+
+    .user-details {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .user-name {
+        font-weight: 600;
+        color: #1f2a44;
+    }
+
+    .user-age {
+        font-size: 0.9rem;
+        color: #556485;
+    }
+
+    .danger {
+        border: none;
+        border-radius: 10px;
+        padding: 0.55rem 1.15rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #fff;
+        background: linear-gradient(135deg, #ff4b5c, #c81d3d);
+        cursor: pointer;
+        transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+
+    .danger:disabled {
+        cursor: default;
+        opacity: 0.6;
+        transform: none;
+    }
+
+    .danger:not(:disabled):hover {
+        transform: translateY(-1px);
+    }
+
+    .muted {
+        color: #6c7a95;
+        margin: 0;
+    }
+
+    .alert {
+        padding: 1rem 1.25rem;
+        border-radius: 12px;
+        font-weight: 600;
+        border: 1px solid transparent;
+    }
+
+    .alert--error {
+        background: #ffe8ec;
+        color: #c81d3d;
+        border-color: rgba(200, 29, 61, 0.35);
+    }
+
+    .alert--success {
+        background: #e8f8f1;
+        color: #13795b;
+        border-color: rgba(19, 121, 91, 0.3);
+    }
+
+    @media (max-width: 640px) {
+        .card {
+            padding: 1.5rem 1.25rem;
+        }
+
+        .user-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
+        .primary {
+            width: 100%;
+            text-align: center;
+        }
+
+        .danger {
+            width: 100%;
+        }
     }
 </style>
 
 @code {
     private HttpClient http = default!;
-    private List<User> users = new();
+    private readonly List<User> users = new();
+    private readonly HashSet<string> deletingUserIds = new();
     private UserCreateDto newUser = new();
+    private bool isLoading = true;
+    private bool isSubmitting;
+    private string? errorMessage;
+    private string? successMessage;
+
+    private bool CanSubmit =>
+        !string.IsNullOrWhiteSpace(newUser.Name) &&
+        newUser.Age > 0 &&
+        !string.IsNullOrWhiteSpace(newUser.Password);
 
     protected override async Task OnInitializedAsync()
     {
         http = ClientFactory.CreateClient();
-        http.BaseAddress = new Uri(Nav.BaseUri);
+        http.BaseAddress ??= Nav.ToAbsoluteUri("/");
         await LoadUsers();
     }
 
     private async Task LoadUsers()
     {
-        users = await http.GetFromJsonAsync<List<User>>("api/users") ?? new();
+        isLoading = true;
+
+        try
+        {
+            var response = await http.GetAsync("api/users");
+            if (response.IsSuccessStatusCode)
+            {
+                var data = await response.Content.ReadFromJsonAsync<List<User>>();
+                users.Clear();
+                if (data != null)
+                {
+                    users.AddRange(data);
+                }
+                errorMessage = null;
+            }
+            else
+            {
+                users.Clear();
+                var details = await response.Content.ReadAsStringAsync();
+                errorMessage = BuildErrorMessage("load users", response.StatusCode, details);
+            }
+        }
+        catch (Exception ex)
+        {
+            users.Clear();
+            errorMessage = $"Failed to load users: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
     }
 
     private async Task CreateUser()
     {
-        await http.PostAsJsonAsync("api/users", newUser);
-        newUser = new UserCreateDto();
-        await LoadUsers();
+        if (isSubmitting || !CanSubmit)
+        {
+            return;
+        }
+
+        ClearMessages();
+        isSubmitting = true;
+
+        try
+        {
+            var response = await http.PostAsJsonAsync("api/users", newUser);
+            if (response.IsSuccessStatusCode)
+            {
+                newUser = new UserCreateDto();
+                await LoadUsers();
+                if (string.IsNullOrEmpty(errorMessage))
+                {
+                    successMessage = "User added successfully.";
+                }
+            }
+            else
+            {
+                var details = await response.Content.ReadAsStringAsync();
+                errorMessage = BuildErrorMessage("create the user", response.StatusCode, details);
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to create the user: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
     }
 
-    private async Task DeleteUser(string id)
+    private async Task DeleteUser(string? id)
     {
-        await http.DeleteAsync($"api/users/{id}");
-        await LoadUsers();
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            return;
+        }
+
+        var userId = id!;
+        if (deletingUserIds.Contains(userId))
+        {
+            return;
+        }
+
+        ClearMessages();
+        deletingUserIds.Add(userId);
+
+        try
+        {
+            var response = await http.DeleteAsync($"api/users/{userId}");
+            if (response.IsSuccessStatusCode)
+            {
+                await LoadUsers();
+                if (string.IsNullOrEmpty(errorMessage))
+                {
+                    successMessage = "User removed.";
+                }
+            }
+            else
+            {
+                var details = await response.Content.ReadAsStringAsync();
+                errorMessage = BuildErrorMessage("delete the user", response.StatusCode, details);
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to delete the user: {ex.Message}";
+        }
+        finally
+        {
+            deletingUserIds.Remove(userId);
+        }
+    }
+
+    private void ClearMessages()
+    {
+        errorMessage = null;
+        successMessage = null;
+    }
+
+    private static string BuildErrorMessage(string action, HttpStatusCode statusCode, string? details)
+    {
+        var message = $"Failed to {action}. Server returned {(int)statusCode} {statusCode}.";
+        if (!string.IsNullOrWhiteSpace(details))
+        {
+            message += $" {details.Trim()}";
+        }
+
+        return message;
     }
 }

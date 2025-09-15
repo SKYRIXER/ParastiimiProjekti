@@ -3,23 +3,63 @@
 @inject IHttpClientFactory ClientFactory
 @inject NavigationManager Nav
 
-<h3>Users</h3>
+<div class="page-container">
+    <h3>Users</h3>
 
-<form @onsubmit="CreateUser">
-    <input @bind="newUser.Name" placeholder="Name" />
-    <input type="number" @bind="newUser.Age" placeholder="Age" />
-    <input type="password" @bind="newUser.Password" placeholder="Password" />
-    <button type="submit">Add</button>
-</form>
+    <form @onsubmit="CreateUser" @onsubmit:preventDefault class="user-form">
+        <input @bind="newUser.Name" placeholder="Name" />
+        <input type="number" @bind="newUser.Age" placeholder="Age" />
+        <input type="password" @bind="newUser.Password" placeholder="Password" />
+        <button type="submit">Add</button>
+    </form>
 
-<ul>
-    @foreach (var u in users)
-    {
-        <li>@u.Name (@u.Age)
-            <button @onclick="() => DeleteUser(u.Id)">Delete</button>
-        </li>
+    <ul class="user-list">
+        @foreach (var u in users)
+        {
+            <li>
+                <span>@u.Name (@u.Age)</span>
+                <button type="button" @onclick="() => DeleteUser(u.Id)">Delete</button>
+            </li>
+        }
+    </ul>
+</div>
+
+<style>
+    .page-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-family: Arial, sans-serif;
+        padding-top: 2rem;
     }
-</ul>
+
+    .user-form {
+        display: flex;
+        flex-direction: column;
+        width: 300px;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .user-form input {
+        padding: 0.5rem;
+    }
+
+    .user-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .user-list li {
+        display: flex;
+        justify-content: space-between;
+        width: 300px;
+        margin-bottom: 0.5rem;
+        background-color: #f0f0f0;
+        padding: 0.5rem;
+        border-radius: 4px;
+    }
+</style>
 
 @code {
     private HttpClient http;

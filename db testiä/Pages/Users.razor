@@ -1,0 +1,52 @@
+@page "/"
+@inject IHttpClientFactory ClientFactory
+@inject NavigationManager Nav
+
+<h3>Users</h3>
+
+<form @onsubmit="CreateUser">
+    <input @bind="newUser.Name" placeholder="Name" />
+    <input type="number" @bind="newUser.Age" placeholder="Age" />
+    <input type="password" @bind="newUser.Password" placeholder="Password" />
+    <button type="submit">Add</button>
+</form>
+
+<ul>
+    @foreach (var u in users)
+    {
+        <li>@u.Name (@u.Age)
+            <button @onclick="() => DeleteUser(u.Id)">Delete</button>
+        </li>
+    }
+</ul>
+
+@code {
+    private HttpClient http;
+    private List<User> users = new();
+    private UserCreateDto newUser = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        http = ClientFactory.CreateClient();
+        http.BaseAddress = new Uri(Nav.BaseUri);
+        await LoadUsers();
+    }
+
+    private async Task LoadUsers()
+    {
+        users = await http.GetFromJsonAsync<List<User>>("api/users") ?? new();
+    }
+
+    private async Task CreateUser()
+    {
+        await http.PostAsJsonAsync("api/users", newUser);
+        newUser = new UserCreateDto();
+        await LoadUsers();
+    }
+
+    private async Task DeleteUser(string id)
+    {
+        await http.DeleteAsync($"api/users/{id}");
+        await LoadUsers();
+    }
+}

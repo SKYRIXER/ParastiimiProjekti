@@ -1,0 +1,18 @@
+@page "/"
+@namespace db_testiä.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>User Management</title>
+    <base href="~/" />
+</head>
+<body>
+    <app>
+        <component type="typeof(db_testiä.Pages.Users)" render-mode="ServerPrerendered" />
+    </app>
+
+    <script src="_framework/blazor.server.js"></script>
+</body>
+</html>

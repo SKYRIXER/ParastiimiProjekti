@@ -3,26 +3,103 @@
 @inject IHttpClientFactory ClientFactory
 @inject NavigationManager Nav
 
-<h3>Users</h3>
+<div class="page-wrapper">
+    <nav class="sidebar">
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/users">Users</a></li>
+        </ul>
+    </nav>
 
-<form @onsubmit="CreateUser">
-    <input @bind="newUser.Name" placeholder="Name" />
-    <input type="number" @bind="newUser.Age" placeholder="Age" />
-    <input type="password" @bind="newUser.Password" placeholder="Password" />
-    <button type="submit">Add</button>
-</form>
+    <div class="page-container">
+        <h3>Users</h3>
 
-<ul>
-    @foreach (var u in users)
-    {
-        <li>@u.Name (@u.Age)
-            <button @onclick="() => DeleteUser(u.Id)">Delete</button>
-        </li>
+        <form class="user-form">
+            <input @bind="newUser.Name" placeholder="Name" />
+            <input type="number" @bind="newUser.Age" placeholder="Age" />
+            <input type="password" @bind="newUser.Password" placeholder="Password" />
+            <button type="button" @onclick="CreateUser">Add</button>
+        </form>
+
+        <ul class="user-list">
+            @foreach (var u in users)
+            {
+                <li>
+                    <span>@u.Name (@u.Age)</span>
+                    <button type="button" @onclick="@(() => DeleteUser(u.Id!))">Delete</button>
+                </li>
+            }
+        </ul>
+    </div>
+</div>
+
+<style>
+    .page-wrapper {
+        display: flex;
+        min-height: 100vh;
+        font-family: Arial, sans-serif;
     }
-</ul>
+
+    .sidebar {
+        width: 200px;
+        padding: 1rem;
+        background: linear-gradient(180deg, #4b6cb7, #182848);
+        color: #fff;
+    }
+
+    .sidebar ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .sidebar li {
+        margin-bottom: 1rem;
+    }
+
+    .sidebar a {
+        color: #fff;
+        text-decoration: none;
+    }
+
+    .page-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-top: 2rem;
+    }
+
+    .user-form {
+        display: flex;
+        flex-direction: column;
+        width: 300px;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .user-form input {
+        padding: 0.5rem;
+    }
+
+    .user-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .user-list li {
+        display: flex;
+        justify-content: space-between;
+        width: 300px;
+        margin-bottom: 0.5rem;
+        background-color: #f0f0f0;
+        padding: 0.5rem;
+        border-radius: 4px;
+    }
+</style>
 
 @code {
-    private HttpClient http;
+    private HttpClient http = default!;
     private List<User> users = new();
     private UserCreateDto newUser = new();
 

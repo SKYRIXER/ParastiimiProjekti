@@ -32,8 +32,15 @@ namespace db_testiä.Controllers
         }
 
         [HttpPost]
-        public ActionResult<User> Create(User user)
+        public ActionResult<User> Create(UserCreateDto userDto)
         {
+            var user = new User
+            {
+                Name = userDto.Name,
+                Age = userDto.Age,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(userDto.Password)
+            };
+
             _userService.Create(user);
             return CreatedAtRoute("GetUser", new { id = user.Id }, user);
         }

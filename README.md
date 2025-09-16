@@ -6,7 +6,7 @@ This repository contains a **C# Blazor frontend** and a **.NET Web API backend**
 
 ### Prerequisites
 - [.NET 8 SDK](https://dotnet.microsoft.com/download)
-- [MongoDB](https://www.mongodb.com/try/download/community) (running locally or in the cloud) Our is clud
+- [MongoDB](https://www.mongodb.com/try/download/community) (running locally or in the cloud) Our is cloud
 - A code editor (e.g. [Visual Studio](https://visualstudio.microsoft.com/) or [VS Code](https://code.visualstudio.com/))
 
 ### 1. Clone the repository

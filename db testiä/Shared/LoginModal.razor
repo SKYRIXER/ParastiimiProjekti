@@ -1,0 +1,477 @@
+@using System.ComponentModel.DataAnnotations
+@using db_testiä.Authentication
+@using db_testiä.Models
+@using db_testiä.Services
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Forms
+@inject CustomAuthStateProvider AuthStateProvider
+@inject AuthService AuthService
+
+@if (IsOpen)
+{
+    <div class="login-modal__overlay" @onclick="Close">
+        <div class="login-modal" role="dialog" aria-modal="true" aria-labelledby="login-modal-title" @onclick:stopPropagation>
+            <button type="button" class="login-modal__close" @onclick="Close" aria-label="Close login dialog">
+                <span aria-hidden="true">&times;</span>
+            </button>
+
+            <h2 id="login-modal-title">@(isCreating ? "Create a user" : "Welcome back")</h2>
+            <p class="login-modal__subtitle">@(isCreating
+                    ? "Create a user account to access the dashboard."
+                    : "Sign in to manage MongoDB users from the dashboard.")</p>
+
+            @if (!string.IsNullOrWhiteSpace(feedbackMessage))
+            {
+                <div class="login-modal__feedback @(feedbackIsError ? "login-modal__feedback--error" : "login-modal__feedback--success")">
+                    @feedbackMessage
+                </div>
+            }
+
+            @if (isCreating)
+            {
+                <EditForm Model="createModel" OnValidSubmit="HandleCreateUser" class="login-modal__form" @key="1">
+                    <DataAnnotationsValidator />
+                    <div class="login-modal__fields">
+                        <label class="login-modal__field" for="create-name">
+                            Name
+                            <InputText id="create-name" class="login-modal__input" @bind-Value="createModel.Name" @bind-Value:event="oninput" autocomplete="username" />
+                            <ValidationMessage For="() => createModel.Name" />
+                        </label>
+
+                        <label class="login-modal__field" for="create-age">
+                            Age
+                            <InputNumber id="create-age" class="login-modal__input" @bind-Value="createModel.Age" @bind-Value:event="oninput" min="1" />
+                            <ValidationMessage For="() => createModel.Age" />
+                        </label>
+
+                        <label class="login-modal__field" for="create-password">
+                            Password
+                            <InputText id="create-password" class="login-modal__input" @bind-Value="createModel.Password" @bind-Value:event="oninput" type="password" autocomplete="new-password" />
+                            <ValidationMessage For="() => createModel.Password" />
+                        </label>
+                    </div>
+
+                    <button type="submit" class="login-modal__submit" disabled="@isBusy">
+                        @(isBusy ? "Creating..." : "Create user")
+                    </button>
+                </EditForm>
+            }
+            else
+            {
+                <EditForm Model="loginModel" OnValidSubmit="HandleLogin" class="login-modal__form" @key="0">
+                    <DataAnnotationsValidator />
+                    <div class="login-modal__fields">
+                        <label class="login-modal__field" for="login-name">
+                            Name
+                            <InputText id="login-name" class="login-modal__input" @bind-Value="loginModel.Name" @bind-Value:event="oninput" autocomplete="username" />
+                            <ValidationMessage For="() => loginModel.Name" />
+                        </label>
+
+                        <label class="login-modal__field" for="login-password">
+                            Password
+                            <InputText id="login-password" class="login-modal__input" @bind-Value="loginModel.Password" @bind-Value:event="oninput" type="password" autocomplete="current-password" />
+                            <ValidationMessage For="() => loginModel.Password" />
+                        </label>
+                    </div>
+
+                    <button type="submit" class="login-modal__submit" disabled="@isBusy">
+                        @(isBusy ? "Signing in..." : "Log in")
+                    </button>
+                </EditForm>
+            }
+
+            <button type="button" class="login-modal__toggle" @onclick="ToggleMode" disabled="@isBusy">
+                @(isCreating ? "Already have an account? Log in" : "Need an account? Create user")
+            </button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public bool IsOpen { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> IsOpenChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<LoginResponse> OnSuccess { get; set; }
+
+    private readonly LoginFormModel loginModel = new();
+    private UserCreateDto createModel = new();
+    private bool isCreating;
+    private bool isBusy;
+    private string? feedbackMessage;
+    private bool feedbackIsError;
+    private bool wasOpen;
+
+    protected override void OnParametersSet()
+    {
+        if (IsOpen && !wasOpen)
+        {
+            ResetState();
+        }
+
+        wasOpen = IsOpen;
+    }
+
+    private async Task HandleLogin()
+    {
+        if (isBusy)
+        {
+            return;
+        }
+
+        ClearFeedback();
+        isBusy = true;
+
+        try
+        {
+            var trimmedName = loginModel.Name?.Trim() ?? string.Empty;
+            var result = await AuthService.LoginAsync(trimmedName, loginModel.Password);
+
+            if (result.Succeeded && result.Response is not null)
+            {
+                var session = new UserSession
+                {
+                    UserId = result.Response.UserId,
+                    UserName = result.Response.Name
+                };
+
+                await AuthStateProvider.UpdateAuthenticationState(session);
+                loginModel.Reset();
+                await CloseInternal();
+                if (OnSuccess.HasDelegate)
+                {
+                    await OnSuccess.InvokeAsync(result.Response);
+                }
+
+                return;
+            }
+
+            switch (result.Failure)
+            {
+                case LoginFailureReason.InvalidCredentials:
+                    SetFeedback(result.ErrorMessage ?? "Invalid username or password.", isError: true);
+                    break;
+                case LoginFailureReason.MissingIdentifier:
+                    SetFeedback(result.ErrorMessage ?? "The user does not have a valid identifier.", isError: true);
+                    break;
+                default:
+                    SetFeedback(result.ErrorMessage ?? "Failed to sign in due to an unexpected error.", isError: true);
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            SetFeedback($"Failed to sign in: {ex.Message}", isError: true);
+        }
+        finally
+        {
+            isBusy = false;
+        }
+    }
+
+    private async Task HandleCreateUser()
+    {
+        if (isBusy)
+        {
+            return;
+        }
+
+        ClearFeedback();
+        isBusy = true;
+
+        try
+        {
+            createModel.Name = createModel.Name?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(createModel.Name))
+            {
+                SetFeedback("Name is required.", isError: true);
+                return;
+            }
+
+            if (createModel.Age <= 0)
+            {
+                SetFeedback("Please provide a valid age greater than zero.", isError: true);
+                return;
+            }
+
+            var request = new UserCreateDto
+            {
+                Name = createModel.Name,
+                Age = createModel.Age,
+                Password = createModel.Password
+            };
+
+            var result = await AuthService.CreateUserAsync(request);
+
+            switch (result.Status)
+            {
+                case CreateUserStatus.Success:
+                    createModel = new UserCreateDto();
+                    isCreating = false;
+                    SetFeedback("User created successfully! You can now log in.", isError: false);
+                    break;
+                case CreateUserStatus.DuplicateName:
+                    SetFeedback(result.ErrorMessage ?? "A user with this name already exists.", isError: true);
+                    break;
+                case CreateUserStatus.ValidationFailed:
+                    SetFeedback(result.ErrorMessage ?? "Please check the details and try again.", isError: true);
+                    break;
+                default:
+                    SetFeedback(result.ErrorMessage ?? "Failed to create the user.", isError: true);
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            SetFeedback($"Failed to create the user: {ex.Message}", isError: true);
+        }
+        finally
+        {
+            isBusy = false;
+        }
+    }
+
+    private async Task Close()
+    {
+        if (isBusy)
+        {
+            return;
+        }
+
+        await CloseInternal();
+    }
+
+    private async Task CloseInternal()
+    {
+        if (IsOpenChanged.HasDelegate)
+        {
+            await IsOpenChanged.InvokeAsync(false);
+        }
+    }
+
+    private void ToggleMode()
+    {
+        if (isBusy)
+        {
+            return;
+        }
+
+        isCreating = !isCreating;
+        ClearFeedback();
+    }
+
+    private void ResetState()
+    {
+        loginModel.Reset();
+        createModel = new UserCreateDto();
+        isCreating = false;
+        isBusy = false;
+        ClearFeedback();
+    }
+
+    private void ClearFeedback()
+    {
+        feedbackMessage = null;
+        feedbackIsError = false;
+    }
+
+    private void SetFeedback(string message, bool isError)
+    {
+        feedbackMessage = message;
+        feedbackIsError = isError;
+    }
+
+    private sealed class LoginFormModel
+    {
+        [Required(ErrorMessage = "Name is required.")]
+        public string Name { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Password is required.")]
+        public string Password { get; set; } = string.Empty;
+
+        public void Reset()
+        {
+            Name = string.Empty;
+            Password = string.Empty;
+        }
+    }
+}
+
+<style>
+    .login-modal__overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.55);
+        backdrop-filter: blur(6px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 1.5rem;
+        z-index: 1000;
+    }
+
+    .login-modal {
+        position: relative;
+        width: min(420px, 100%);
+        background: #ffffff;
+        border-radius: 22px;
+        padding: 2.25rem 2.1rem 2.5rem;
+        box-shadow: 0 35px 65px rgba(24, 40, 72, 0.25);
+        animation: login-modal-fade 180ms ease-out;
+    }
+
+    .login-modal__close {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        border: none;
+        background: rgba(24, 40, 72, 0.08);
+        color: #182848;
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 50%;
+        font-size: 1.25rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.15s ease, background-color 0.15s ease;
+    }
+
+    .login-modal__close:hover {
+        transform: scale(1.05);
+        background: rgba(24, 40, 72, 0.16);
+    }
+
+    .login-modal h2 {
+        margin: 0 0 0.5rem;
+        font-size: 1.65rem;
+        color: #1f2a44;
+        font-weight: 700;
+    }
+
+    .login-modal__subtitle {
+        margin: 0 0 1.5rem;
+        color: #4c5d7a;
+        line-height: 1.6;
+    }
+
+    .login-modal__feedback {
+        padding: 0.85rem 1rem;
+        border-radius: 12px;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+    }
+
+    .login-modal__feedback--error {
+        background: #ffe8ec;
+        color: #c81d3d;
+        border: 1px solid rgba(200, 29, 61, 0.25);
+    }
+
+    .login-modal__feedback--success {
+        background: #e8f8f1;
+        color: #13795b;
+        border: 1px solid rgba(19, 121, 91, 0.2);
+    }
+
+    .login-modal__fields {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 1.75rem;
+    }
+
+    .login-modal__field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        font-weight: 600;
+        color: #2f3b58;
+    }
+
+    .login-modal__input {
+        border-radius: 12px;
+        border: 1px solid #c8d1ea;
+        padding: 0.7rem 0.85rem;
+        font-size: 1rem;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .login-modal__input:focus {
+        outline: none;
+        border-color: #4b6cb7;
+        box-shadow: 0 0 0 3px rgba(75, 108, 183, 0.2);
+    }
+
+    .validation-message {
+        font-size: 0.85rem;
+        color: #c81d3d;
+        font-weight: 500;
+    }
+
+    .login-modal__submit {
+        width: 100%;
+        border: none;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #4b6cb7, #182848);
+        color: #ffffff;
+        font-size: 1.05rem;
+        font-weight: 700;
+        padding: 0.85rem 1.25rem;
+        cursor: pointer;
+        box-shadow: 0 16px 32px rgba(24, 40, 72, 0.28);
+        transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+    }
+
+    .login-modal__submit:disabled {
+        opacity: 0.65;
+        cursor: default;
+        box-shadow: none;
+    }
+
+    .login-modal__submit:not(:disabled):hover {
+        transform: translateY(-1px);
+        box-shadow: 0 20px 38px rgba(24, 40, 72, 0.35);
+    }
+
+    .login-modal__toggle {
+        margin-top: 1.25rem;
+        border: none;
+        background: transparent;
+        color: #4b6cb7;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-decoration: underline;
+        cursor: pointer;
+        opacity: 0.85;
+        transition: opacity 0.15s ease;
+    }
+
+    .login-modal__toggle:hover {
+        opacity: 1;
+    }
+
+    @@keyframes login-modal-fade {
+        from {
+            transform: translateY(12px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .login-modal {
+            padding: 2rem 1.5rem 2.25rem;
+        }
+
+        .login-modal h2 {
+            font-size: 1.45rem;
+        }
+    }
+</style>

@@ -11,7 +11,7 @@
         <AuthorizeView>
             <Authorized Context="authState">
                 <button type="button" class="landing__primary" @onclick="NavigateToUsers">Open the dashboard</button>
-                <p class="landing__footnote">Signed in as <strong>@authState.User.Identity?.Name</strong>. Jump straight into managing your team.</p>
+                <p class="landing__footnote">Signed in as <strong>@@authState.User.Identity?.Name</strong>. Jump straight into managing your team.</p>
             </Authorized>
             <NotAuthorized>
                 <div class="landing__actions">
@@ -198,7 +198,8 @@
         color: #4b6cb7;
     }
 
-    @media (max-width: 960px) {
+
+    @@media (max-width: 960px) {
         .landing {
             padding: 2.5rem 0;
             gap: 2.5rem;
@@ -209,7 +210,7 @@
         }
     }
 
-    @media (max-width: 640px) {
+    @@media (max-width: 640px) {
         .landing {
             grid-template-columns: 1fr;
             text-align: center;

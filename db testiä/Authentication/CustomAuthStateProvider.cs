@@ -37,6 +37,7 @@ namespace db_testiä.Authentication
                 var session = storedSession.Value;
                 if (string.IsNullOrWhiteSpace(session.UserName))
                 {
+
                     await TryDeleteSessionAsync("empty user name");
                     return new AuthenticationState(Anonymous);
                 }

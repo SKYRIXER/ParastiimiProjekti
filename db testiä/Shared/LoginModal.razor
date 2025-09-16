@@ -35,19 +35,19 @@
                     <div class="login-modal__fields">
                         <label class="login-modal__field" for="create-name">
                             Name
-                            <InputText id="create-name" class="login-modal__input" @bind-Value="createModel.Name" @bind-Value:event="oninput" autocomplete="username" />
+                            <InputText id="create-name" class="login-modal__input" @bind-Value="createModel.Name" autocomplete="username" />
                             <ValidationMessage For="() => createModel.Name" />
                         </label>
 
                         <label class="login-modal__field" for="create-age">
                             Age
-                            <InputNumber id="create-age" class="login-modal__input" @bind-Value="createModel.Age" @bind-Value:event="oninput" min="1" />
+                            <InputNumber id="create-age" class="login-modal__input" @bind-Value="createModel.Age" min="1" />
                             <ValidationMessage For="() => createModel.Age" />
                         </label>
 
                         <label class="login-modal__field" for="create-password">
                             Password
-                            <InputText id="create-password" class="login-modal__input" @bind-Value="createModel.Password" @bind-Value:event="oninput" type="password" autocomplete="new-password" />
+                            <InputText id="create-password" class="login-modal__input" @bind-Value="createModel.Password" type="password" autocomplete="new-password" />
                             <ValidationMessage For="() => createModel.Password" />
                         </label>
                     </div>
@@ -64,13 +64,13 @@
                     <div class="login-modal__fields">
                         <label class="login-modal__field" for="login-name">
                             Name
-                            <InputText id="login-name" class="login-modal__input" @bind-Value="loginModel.Name" @bind-Value:event="oninput" autocomplete="username" />
+                            <InputText id="login-name" class="login-modal__input" @bind-Value="loginModel.Name" autocomplete="username" />
                             <ValidationMessage For="() => loginModel.Name" />
                         </label>
 
                         <label class="login-modal__field" for="login-password">
                             Password
-                            <InputText id="login-password" class="login-modal__input" @bind-Value="loginModel.Password" @bind-Value:event="oninput" type="password" autocomplete="current-password" />
+                            <InputText id="login-password" class="login-modal__input" @bind-Value="loginModel.Password" type="password" autocomplete="current-password" />
                             <ValidationMessage For="() => loginModel.Password" />
                         </label>
                     </div>

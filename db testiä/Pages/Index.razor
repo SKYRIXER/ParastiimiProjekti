@@ -1,77 +1,234 @@
 @page "/"
+@using System
 @inject NavigationManager Nav
 
-<section class="home">
-    <h1>Welcome!</h1>
-    <p class="lead">Use this dashboard to view, create and remove users from the MongoDB database.</p>
-    <p>The <strong>Users</strong> section provides a live view of every user stored in the backend API. Add new entries with the form, and delete users that are no longer needed with a single click.</p>
+<section class="landing">
+    <div class="landing__content">
+        <span class="landing__badge">Welcome to Mongo Users</span>
+        <h1>All of your users in one delightful place</h1>
+        <p class="landing__lead">Build and maintain your MongoDB-backed community with an elegant dashboard that keeps everything organised and secure.</p>
 
-    <button class="primary" type="button" @onclick="NavigateToUsers">Go to user management</button>
+        <AuthorizeView>
+            <Authorized Context="authState">
+                <button type="button" class="landing__primary" @onclick="NavigateToUsers">Open the dashboard</button>
+                <p class="landing__footnote">Signed in as <strong>@authState.User.Identity?.Name</strong>. Jump straight into managing your team.</p>
+            </Authorized>
+            <NotAuthorized>
+                <div class="landing__actions">
+                    <button type="button" class="landing__primary" @onclick="TriggerLogin">Log in to get started</button>
+                </div>
+                <p class="landing__footnote">Need access? Use the login window to create a user and unlock the full dashboard.</p>
+            </NotAuthorized>
+        </AuthorizeView>
+    </div>
+
+    <div class="landing__visual">
+        <div class="landing__card">
+            <h2>User analytics at a glance</h2>
+            <ul>
+                <li>Secure BCrypt hashing keeps credentials safe at rest.</li>
+                <li>Manage MongoDB users with quick create and delete flows.</li>
+                <li>Responsive interface tailored for modern teams.</li>
+            </ul>
+            <div class="landing__meta">
+                <span class="landing__meta-label">Access control</span>
+                <p>Only authenticated users can open the management tools beyond this page.</p>
+            </div>
+        </div>
+    </div>
 </section>
 
-<style>
-    .home {
-        max-width: 720px;
-        margin: 0 auto;
-        background-color: #ffffff;
-        padding: 2.5rem 2rem;
-        border-radius: 16px;
-        box-shadow: 0 12px 35px rgba(24, 40, 72, 0.18);
-        text-align: center;
-    }
-
-    .home h1 {
-        font-size: 2.1rem;
-        margin-bottom: 1rem;
-        color: #1f2a44;
-    }
-
-    .lead {
-        font-size: 1.1rem;
-        margin-bottom: 1.25rem;
-        color: #4c5d7a;
-    }
-
-    .home p {
-        color: #4c5d7a;
-        line-height: 1.6;
-        margin-bottom: 1.25rem;
-    }
-
-    .primary {
-        appearance: none;
-        border: none;
-        padding: 0.85rem 1.75rem;
-        border-radius: 999px;
-        font-size: 1rem;
-        font-weight: 600;
-        color: #fff;
-        background: linear-gradient(135deg, #4b6cb7, #182848);
-        cursor: pointer;
-        box-shadow: 0 8px 20px rgba(24, 40, 72, 0.35);
-        transition: transform 0.15s ease, box-shadow 0.15s ease;
-    }
-
-    .primary:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 10px 24px rgba(24, 40, 72, 0.4);
-    }
-
-    .primary:active {
-        transform: translateY(1px);
-        box-shadow: 0 6px 18px rgba(24, 40, 72, 0.28);
-    }
-
-    @@media (max-width: 600px) {
-        .home {
-            padding: 2rem 1.25rem;
-        }
-    }
-</style>
-
 @code {
+    [CascadingParameter]
+    public Action? RequestLogin { get; set; }
+
+    private void TriggerLogin()
+    {
+        RequestLogin?.Invoke();
+    }
+
     private void NavigateToUsers()
     {
         Nav.NavigateTo("/users");
     }
 }
+
+<style>
+    .landing {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 3.5rem;
+        align-items: center;
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 3rem 0;
+    }
+
+    .landing::before {
+        content: "";
+        position: absolute;
+        inset: -12rem -8rem auto auto;
+        width: 380px;
+        height: 380px;
+        background: radial-gradient(circle at top, rgba(75, 108, 183, 0.35), transparent 70%);
+        z-index: -1;
+    }
+
+    .landing::after {
+        content: "";
+        position: absolute;
+        inset: auto auto -10rem -6rem;
+        width: 320px;
+        height: 320px;
+        background: radial-gradient(circle at bottom, rgba(24, 40, 72, 0.2), transparent 70%);
+        z-index: -1;
+    }
+
+    .landing__content {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .landing__badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.35rem 0.85rem;
+        border-radius: 999px;
+        background: rgba(75, 108, 183, 0.12);
+        color: #2f3b58;
+        font-weight: 600;
+        font-size: 0.9rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    .landing h1 {
+        margin: 0;
+        font-size: 2.75rem;
+        line-height: 1.15;
+        color: #1f2a44;
+    }
+
+    .landing__lead {
+        margin: 0;
+        font-size: 1.1rem;
+        line-height: 1.7;
+        color: #4c5d7a;
+        max-width: 560px;
+    }
+
+    .landing__actions {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .landing__primary {
+        border: none;
+        border-radius: 999px;
+        padding: 0.95rem 2.2rem;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #fff;
+        cursor: pointer;
+        background: linear-gradient(135deg, #4b6cb7, #182848);
+        box-shadow: 0 20px 36px rgba(24, 40, 72, 0.3);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .landing__primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 24px 48px rgba(24, 40, 72, 0.36);
+    }
+
+    .landing__footnote {
+        margin: 0;
+        color: #556485;
+        font-size: 0.95rem;
+    }
+
+    .landing__visual {
+        display: flex;
+        justify-content: center;
+    }
+
+    .landing__card {
+        background: rgba(255, 255, 255, 0.92);
+        border-radius: 22px;
+        padding: 2.5rem 2.25rem;
+        box-shadow: 0 30px 60px rgba(24, 40, 72, 0.18);
+        backdrop-filter: blur(6px);
+        max-width: 420px;
+    }
+
+    .landing__card h2 {
+        margin: 0 0 1.25rem;
+        font-size: 1.55rem;
+        color: #1f2a44;
+    }
+
+    .landing__card ul {
+        margin: 0 0 1.75rem;
+        padding-left: 1.25rem;
+        color: #4c5d7a;
+        line-height: 1.7;
+    }
+
+    .landing__card li + li {
+        margin-top: 0.5rem;
+    }
+
+    .landing__meta {
+        padding: 1rem 1.25rem;
+        border-radius: 16px;
+        background: rgba(75, 108, 183, 0.1);
+        color: #2f3b58;
+    }
+
+    .landing__meta-label {
+        display: inline-block;
+        margin-bottom: 0.35rem;
+        font-weight: 700;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #4b6cb7;
+    }
+
+    @media (max-width: 960px) {
+        .landing {
+            padding: 2.5rem 0;
+            gap: 2.5rem;
+        }
+
+        .landing h1 {
+            font-size: 2.3rem;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .landing {
+            grid-template-columns: 1fr;
+            text-align: center;
+        }
+
+        .landing__content {
+            align-items: center;
+        }
+
+        .landing__lead {
+            max-width: none;
+        }
+
+        .landing__actions {
+            justify-content: center;
+        }
+
+        .landing__visual {
+            order: -1;
+        }
+    }
+</style>

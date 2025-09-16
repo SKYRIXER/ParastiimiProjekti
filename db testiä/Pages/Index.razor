@@ -1,6 +1,7 @@
 @page "/"
 @using System
 @inject NavigationManager Nav
+@using Microsoft.AspNetCore.Components.Authorization
 
 <section class="landing">
     <div class="landing__content">
@@ -8,8 +9,8 @@
         <h1>All of your users in one delightful place</h1>
         <p class="landing__lead">Build and maintain your MongoDB-backed community with an elegant dashboard that keeps everything organised and secure.</p>
 
-        <AuthorizeView>
-            <Authorized Context="authState">
+        <AuthorizeView Context="authState">
+            <Authorized>
                 <button type="button" class="landing__primary" @onclick="NavigateToUsers">Open the dashboard</button>
                 <p class="landing__footnote">Signed in as <strong>@authState.User.Identity?.Name</strong>. Jump straight into managing your team.</p>
             </Authorized>

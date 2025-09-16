@@ -1,0 +1,100 @@
+@using System
+@using Microsoft.AspNetCore.Components
+
+<section class="not-authorized" aria-live="polite">
+    <h1>Sign in to continue</h1>
+    <p>Access to the dashboard requires authentication. Use the login window to sign in or create a new user.</p>
+
+    <div class="not-authorized__actions">
+        <button type="button"
+                class="not-authorized__action"
+                @onclick="TriggerLogin"
+                disabled="@(!IsLoginAvailable)">
+            Open login window
+        </button>
+    </div>
+
+    <p class="not-authorized__hint">
+        @(IsLoginAvailable
+            ? "The login window should appear automatically. If it doesn\u2019t, use the button above."
+            : "Refresh the page if the login window does not appear.")
+    </p>
+</section>
+
+@code {
+    [CascadingParameter]
+    public Action? RequestLogin { get; set; }
+
+    private bool hasRequestedLogin;
+    private bool shouldAutoOpen = true;
+
+    private bool IsLoginAvailable => RequestLogin is not null;
+
+    protected override void OnParametersSet()
+    {
+        if (shouldAutoOpen && IsLoginAvailable)
+        {
+            shouldAutoOpen = false;
+            _ = InvokeAsync(() => TryRequestLogin());
+        }
+    }
+
+    private void TriggerLogin()
+    {
+        TryRequestLogin(force: true);
+    }
+
+    private void TryRequestLogin(bool force = false)
+    {
+        if (!IsLoginAvailable)
+        {
+            return;
+        }
+
+        if (!force && hasRequestedLogin)
+        {
+            return;
+        }
+
+        RequestLogin!.Invoke();
+        hasRequestedLogin = true;
+    }
+}
+
+<style>
+    .not-authorized__actions {
+        margin-top: 1.75rem;
+        display: flex;
+        justify-content: center;
+    }
+
+    .not-authorized__action {
+        border: none;
+        border-radius: 999px;
+        padding: 0.85rem 2.2rem;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #fff;
+        cursor: pointer;
+        background: linear-gradient(135deg, #4b6cb7, #182848);
+        box-shadow: 0 20px 36px rgba(24, 40, 72, 0.3);
+        transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+    }
+
+    .not-authorized__action:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 24px 48px rgba(24, 40, 72, 0.36);
+    }
+
+    .not-authorized__action:disabled {
+        cursor: default;
+        opacity: 0.65;
+        box-shadow: none;
+    }
+
+    .not-authorized__hint {
+        margin-top: 1.35rem;
+        color: #4c5d7a;
+        line-height: 1.6;
+    }
+</style>

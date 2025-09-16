@@ -143,6 +143,14 @@
     .layout__welcome {
         color: #4c5d7a;
         font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+    }
+
+    .layout__login {
+        color: #fff;
+        background: linear-gradient(135deg, #4b6cb7, #182848);
+        box-shadow: 0 10px 24px rgba(24, 40, 72, 0.28);
     }
 
     .layout__login,
@@ -161,7 +169,7 @@
         background: linear-gradient(135deg, #4b6cb7, #182848);
         box-shadow: 0 10px 24px rgba(24, 40, 72, 0.28);
     }
-
+  
     .layout__login:hover {
         transform: translateY(-1px);
         box-shadow: 0 12px 30px rgba(24, 40, 72, 0.32);

@@ -7,7 +7,6 @@
 @inject CustomAuthStateProvider AuthStateProvider
 @inject AuthService AuthService
 
-
 @if (IsOpen)
 {
     <div class="login-modal__overlay" @onclick="Close">
@@ -161,7 +160,6 @@
                 default:
                     SetFeedback(result.ErrorMessage ?? "Failed to sign in due to an unexpected error.", isError: true);
                     break;
-
             }
         }
         catch (Exception ex)

@@ -30,7 +30,7 @@ namespace db_testiä.Services
                     return LoginResult.InvalidCredentials();
                 }
 
-                if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+                if (!IsPasswordValid(user.PasswordHash, password))
                 {
                     return LoginResult.InvalidCredentials();
                 }
@@ -96,6 +96,29 @@ namespace db_testiä.Services
             {
                 _logger.LogError(ex, "Failed to create user {UserName}.", name);
                 return CreateUserResult.Failure("An unexpected error occurred while creating the user. Please try again.");
+            }
+        }
+
+        private bool IsPasswordValid(string storedHash, string providedPassword)
+        {
+            if (string.IsNullOrWhiteSpace(storedHash))
+            {
+                return false;
+            }
+
+            try
+            {
+                return BCrypt.Net.BCrypt.Verify(providedPassword, storedHash);
+            }
+            catch (BCrypt.Net.SaltParseException ex)
+            {
+                _logger.LogWarning(ex, "Stored password hash has an unexpected format. Rejecting login attempt.");
+                return false;
+            }
+            catch (FormatException ex)
+            {
+                _logger.LogWarning(ex, "Stored password hash has an invalid format. Rejecting login attempt.");
+                return false;
             }
         }
     }

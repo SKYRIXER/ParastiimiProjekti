@@ -24,15 +24,15 @@
         <div class="form-grid">
             <label>
                 Name
-                <input @bind="newUser.Name" @bind:event="oninput" placeholder="Jane Doe" />
+                <input @bind="newUser.Name" placeholder="Jane Doe" />
             </label>
             <label>
                 Age
-                <input type="number" min="1" @bind="newUser.Age" @bind:event="oninput" placeholder="30" />
+                <input type="number" min="1" @bind="newUser.Age" placeholder="30" />
             </label>
             <label>
                 Password
-                <input type="password" @bind="newUser.Password" @bind:event="oninput" placeholder="Secret password" />
+                <input type="password" @bind="newUser.Password" placeholder="Secret password" />
             </label>
         </div>
         <button type="button" class="primary" @onclick="CreateUser" disabled="@(!CanSubmit || isSubmitting)">

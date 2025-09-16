@@ -1,14 +1,12 @@
 @using System.ComponentModel.DataAnnotations
-@using System.Net
-@using System.Net.Http
-@using System.Net.Http.Json
 @using db_testiä.Authentication
 @using db_testiä.Models
+@using db_testiä.Services
 @using Microsoft.AspNetCore.Components
 @using Microsoft.AspNetCore.Components.Forms
-@inject IHttpClientFactory ClientFactory
-@inject NavigationManager Nav
 @inject CustomAuthStateProvider AuthStateProvider
+@inject AuthService AuthService
+
 
 @if (IsOpen)
 {
@@ -106,7 +104,6 @@
     private bool isBusy;
     private string? feedbackMessage;
     private bool feedbackIsError;
-    private HttpClient? httpClient;
     private bool wasOpen;
 
     protected override void OnParametersSet()
@@ -117,17 +114,6 @@
         }
 
         wasOpen = IsOpen;
-    }
-
-    private HttpClient GetClient()
-    {
-        if (httpClient is null)
-        {
-            httpClient = ClientFactory.CreateClient();
-            httpClient.BaseAddress ??= Nav.ToAbsoluteUri("/");
-        }
-
-        return httpClient;
     }
 
     private async Task HandleLogin()
@@ -142,46 +128,40 @@
 
         try
         {
-            var payload = new LoginRequest
-            {
-                Name = loginModel.Name?.Trim() ?? string.Empty,
-                Password = loginModel.Password
-            };
+            var trimmedName = loginModel.Name?.Trim() ?? string.Empty;
+            var result = await AuthService.LoginAsync(trimmedName, loginModel.Password);
 
-            var response = await GetClient().PostAsJsonAsync("api/auth/login", payload);
-            if (response.IsSuccessStatusCode)
+            if (result.Succeeded && result.Response is not null)
             {
-                var data = await response.Content.ReadFromJsonAsync<LoginResponse>();
-                if (data is null || string.IsNullOrWhiteSpace(data.UserId))
+                var session = new UserSession
                 {
-                    SetFeedback("The server returned an unexpected response.", isError: true);
-                }
-                else
-                {
-                    var session = new UserSession
-                    {
-                        UserId = data.UserId,
-                        UserName = data.Name
-                    };
+                    UserId = result.Response.UserId,
+                    UserName = result.Response.Name
+                };
 
-                    await AuthStateProvider.UpdateAuthenticationState(session);
-                    loginModel.Reset();
-                    await CloseInternal();
-                    if (OnSuccess.HasDelegate)
-                    {
-                        await OnSuccess.InvokeAsync(data);
-                    }
-                    return;
+                await AuthStateProvider.UpdateAuthenticationState(session);
+                loginModel.Reset();
+                await CloseInternal();
+                if (OnSuccess.HasDelegate)
+                {
+                    await OnSuccess.InvokeAsync(result.Response);
                 }
+
+                return;
             }
-            else if (response.StatusCode == HttpStatusCode.Unauthorized)
+
+            switch (result.Failure)
             {
-                SetFeedback("Invalid username or password.", isError: true);
-            }
-            else
-            {
-                var details = await response.Content.ReadAsStringAsync();
-                SetFeedback(BuildErrorMessage("sign in", response.StatusCode, details), isError: true);
+                case LoginFailureReason.InvalidCredentials:
+                    SetFeedback(result.ErrorMessage ?? "Invalid username or password.", isError: true);
+                    break;
+                case LoginFailureReason.MissingIdentifier:
+                    SetFeedback(result.ErrorMessage ?? "The user does not have a valid identifier.", isError: true);
+                    break;
+                default:
+                    SetFeedback(result.ErrorMessage ?? "Failed to sign in due to an unexpected error.", isError: true);
+                    break;
+
             }
         }
         catch (Exception ex)
@@ -219,17 +199,31 @@
                 return;
             }
 
-            var response = await GetClient().PostAsJsonAsync("api/users", createModel);
-            if (response.IsSuccessStatusCode)
+            var request = new UserCreateDto
             {
-                createModel = new UserCreateDto();
-                isCreating = false;
-                SetFeedback("User created successfully! You can now log in.", isError: false);
-            }
-            else
+                Name = createModel.Name,
+                Age = createModel.Age,
+                Password = createModel.Password
+            };
+
+            var result = await AuthService.CreateUserAsync(request);
+
+            switch (result.Status)
             {
-                var details = await response.Content.ReadAsStringAsync();
-                SetFeedback(BuildErrorMessage("create the user", response.StatusCode, details), isError: true);
+                case CreateUserStatus.Success:
+                    createModel = new UserCreateDto();
+                    isCreating = false;
+                    SetFeedback("User created successfully! You can now log in.", isError: false);
+                    break;
+                case CreateUserStatus.DuplicateName:
+                    SetFeedback(result.ErrorMessage ?? "A user with this name already exists.", isError: true);
+                    break;
+                case CreateUserStatus.ValidationFailed:
+                    SetFeedback(result.ErrorMessage ?? "Please check the details and try again.", isError: true);
+                    break;
+                default:
+                    SetFeedback(result.ErrorMessage ?? "Failed to create the user.", isError: true);
+                    break;
             }
         }
         catch (Exception ex)
@@ -290,17 +284,6 @@
     {
         feedbackMessage = message;
         feedbackIsError = isError;
-    }
-
-    private static string BuildErrorMessage(string action, HttpStatusCode status, string? details)
-    {
-        var message = $"Failed to {action}. Server returned {(int)status} {status}.";
-        if (!string.IsNullOrWhiteSpace(details))
-        {
-            message += $" {details.Trim()}";
-        }
-
-        return message;
     }
 
     private sealed class LoginFormModel

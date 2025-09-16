@@ -1,5 +1,6 @@
 using db_testiä.Models;
 using db_testiä.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace db_testiä.Controllers
@@ -8,45 +9,36 @@ namespace db_testiä.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly UserService _userService;
 
-        public AuthController(UserService userService)
+        private readonly AuthService _authService;
+
+        public AuthController(AuthService authService)
         {
-            _userService = userService;
+            _authService = authService;
         }
 
         [HttpPost("login")]
-        public ActionResult<LoginResponse> Login(LoginRequest request)
+        public async Task<ActionResult<LoginResponse>> Login(LoginRequest request)
+
         {
             if (!ModelState.IsValid)
             {
                 return ValidationProblem(ModelState);
             }
 
-            var user = _userService.GetByName(request.Name);
-            if (user is null || string.IsNullOrEmpty(user.PasswordHash))
+            var result = await _authService.LoginAsync(request.Name, request.Password);
+            if (result.Succeeded && result.Response is not null)
             {
-                return Unauthorized(new { message = "Invalid username or password." });
+                return Ok(result.Response);
             }
 
-            var isPasswordValid = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
-            if (!isPasswordValid)
+            return result.Failure switch
             {
-                return Unauthorized(new { message = "Invalid username or password." });
-            }
-
-            if (string.IsNullOrEmpty(user.Id))
-            {
-                return BadRequest(new { message = "The user does not have a valid identifier." });
-            }
-
-            var response = new LoginResponse
-            {
-                UserId = user.Id,
-                Name = user.Name
+                LoginFailureReason.MissingIdentifier => BadRequest(new { message = result.ErrorMessage ?? "The user does not have a valid identifier." }),
+                LoginFailureReason.InvalidCredentials => Unauthorized(new { message = result.ErrorMessage ?? "Invalid username or password." }),
+                _ => StatusCode(StatusCodes.Status500InternalServerError, new { message = result.ErrorMessage ?? "An unexpected error occurred while signing in." })
             };
 
-            return Ok(response);
         }
     }
 }

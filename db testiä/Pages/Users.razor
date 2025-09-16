@@ -1,6 +1,8 @@
 @page "/users"
-@inject IHttpClientFactory ClientFactory
-@inject NavigationManager Nav
+@attribute [Authorize]
+@using db_testiä.Services
+@inject UserService UserService
+@inject AuthService AuthService
 
 <section class="users">
     <header class="users__header">
@@ -259,7 +261,6 @@
 </style>
 
 @code {
-    private HttpClient http = default!;
     private readonly List<User> users = new();
     private readonly HashSet<string> deletingUserIds = new();
     private UserCreateDto newUser = new();
@@ -269,14 +270,12 @@
     private string? successMessage;
 
     private bool CanSubmit =>
-        !string.IsNullOrWhiteSpace(newUser.Name) &&
+        !string.IsNullOrWhiteSpace(newUser.Name?.Trim()) &&
         newUser.Age > 0 &&
         !string.IsNullOrWhiteSpace(newUser.Password);
 
     protected override async Task OnInitializedAsync()
     {
-        http = ClientFactory.CreateClient();
-        http.BaseAddress ??= Nav.ToAbsoluteUri("/");
         await LoadUsers();
     }
 
@@ -286,23 +285,13 @@
 
         try
         {
-            var response = await http.GetAsync("api/users");
-            if (response.IsSuccessStatusCode)
+            var data = await UserService.GetAsync();
+            users.Clear();
+            if (data != null)
             {
-                var data = await response.Content.ReadFromJsonAsync<List<User>>();
-                users.Clear();
-                if (data != null)
-                {
-                    users.AddRange(data);
-                }
-                errorMessage = null;
+                users.AddRange(data);
             }
-            else
-            {
-                users.Clear();
-                var details = await response.Content.ReadAsStringAsync();
-                errorMessage = BuildErrorMessage("load users", response.StatusCode, details);
-            }
+            errorMessage = null;
         }
         catch (Exception ex)
         {
@@ -327,20 +316,35 @@
 
         try
         {
-            var response = await http.PostAsJsonAsync("api/users", newUser);
-            if (response.IsSuccessStatusCode)
+            var request = new UserCreateDto
             {
-                newUser = new UserCreateDto();
-                await LoadUsers();
-                if (string.IsNullOrEmpty(errorMessage))
-                {
-                    successMessage = "User added successfully.";
-                }
-            }
-            else
+                Name = newUser.Name?.Trim() ?? string.Empty,
+                Age = newUser.Age,
+                Password = newUser.Password
+            };
+
+            newUser.Name = request.Name;
+
+            var result = await AuthService.CreateUserAsync(request);
+            switch (result.Status)
             {
-                var details = await response.Content.ReadAsStringAsync();
-                errorMessage = BuildErrorMessage("create the user", response.StatusCode, details);
+                case CreateUserStatus.Success:
+                    newUser = new UserCreateDto();
+                    await LoadUsers();
+                    if (string.IsNullOrEmpty(errorMessage))
+                    {
+                        successMessage = "User added successfully.";
+                    }
+                    break;
+                case CreateUserStatus.DuplicateName:
+                    errorMessage = result.ErrorMessage ?? "A user with this name already exists.";
+                    break;
+                case CreateUserStatus.ValidationFailed:
+                    errorMessage = result.ErrorMessage ?? "Please check the details and try again.";
+                    break;
+                default:
+                    errorMessage = result.ErrorMessage ?? "Failed to create the user.";
+                    break;
             }
         }
         catch (Exception ex)
@@ -371,8 +375,8 @@
 
         try
         {
-            var response = await http.DeleteAsync($"api/users/{userId}");
-            if (response.IsSuccessStatusCode)
+            var deleted = await UserService.DeleteAsync(userId);
+            if (deleted)
             {
                 await LoadUsers();
                 if (string.IsNullOrEmpty(errorMessage))
@@ -382,8 +386,7 @@
             }
             else
             {
-                var details = await response.Content.ReadAsStringAsync();
-                errorMessage = BuildErrorMessage("delete the user", response.StatusCode, details);
+                errorMessage = "The selected user could not be found.";
             }
         }
         catch (Exception ex)
@@ -400,16 +403,5 @@
     {
         errorMessage = null;
         successMessage = null;
-    }
-
-    private static string BuildErrorMessage(string action, HttpStatusCode statusCode, string? details)
-    {
-        var message = $"Failed to {action}. Server returned {(int)statusCode} {statusCode}.";
-        if (!string.IsNullOrWhiteSpace(details))
-        {
-            message += $" {details.Trim()}";
-        }
-
-        return message;
     }
 }

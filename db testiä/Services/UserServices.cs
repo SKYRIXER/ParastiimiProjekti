@@ -19,6 +19,9 @@ namespace db_testiä.Services
 
         public User Get(string id) => _users.Find(user => user.Id == id).FirstOrDefault();
 
+        public User? GetByName(string name) =>
+            _users.Find(user => user.Name == name).FirstOrDefault();
+
         public User Create(User user)
         {
             _users.InsertOne(user);

@@ -8,10 +8,7 @@
             <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
                 <NotAuthorized>
                     <LayoutView Layout="@typeof(MainLayout)">
-                        <section class="not-authorized">
-                            <h1>Sign in to continue</h1>
-                            <p>Use the login button in the top-right corner to authenticate before opening the dashboard.</p>
-                        </section>
+                        <NotAuthorizedPrompt />
                     </LayoutView>
                 </NotAuthorized>
             </AuthorizeRouteView>

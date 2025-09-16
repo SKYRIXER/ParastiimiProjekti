@@ -13,4 +13,4 @@ This repository contains a **C# Blazor frontend** and a **.NET Web API backend**
 ```bash
 git clone https://github.com/SKYRIXER/ParastiimiProjekti.git
 cd ParastiimiProjekti
-Next open db testiä.sln and in visual studio just start the project
+Next open db testiä.sln and in visual studio and just start the project

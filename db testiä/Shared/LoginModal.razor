@@ -9,8 +9,9 @@
 
 @if (IsOpen)
 {
-    <div class="login-modal__overlay" @onclick="Close">
-        <div class="login-modal" role="dialog" aria-modal="true" aria-labelledby="login-modal-title" @onclick:stopPropagation>
+    <div class="login-modal__overlay" role="presentation">
+        <div class="login-modal__backdrop" @onclick="Close" aria-hidden="true"></div>
+        <div class="login-modal" role="dialog" aria-modal="true" aria-labelledby="login-modal-title">
             <button type="button" class="login-modal__close" @onclick="Close" aria-label="Close login dialog">
                 <span aria-hidden="true">&times;</span>
             </button>
@@ -304,8 +305,6 @@
     .login-modal__overlay {
         position: fixed;
         inset: 0;
-        background: rgba(15, 23, 42, 0.55);
-        backdrop-filter: blur(6px);
         display: flex;
         justify-content: center;
         align-items: center;
@@ -313,8 +312,18 @@
         z-index: 1000;
     }
 
+    .login-modal__backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.55);
+        backdrop-filter: blur(6px);
+        cursor: pointer;
+        z-index: 0;
+    }
+
     .login-modal {
         position: relative;
+        z-index: 1;
         width: min(420px, 100%);
         background: #ffffff;
         border-radius: 22px;

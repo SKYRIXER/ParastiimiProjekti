@@ -1,14 +1,55 @@
+@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Components.Routing
 @using db_testiä.Shared
 
-<Router AppAssembly="@typeof(Program).Assembly">
-    <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
-    </Found>
-    <NotFound>
-        <LayoutView Layout="@typeof(MainLayout)">
-            <h1>Page not found</h1>
-            <p>Sorry, we couldn't find the page you requested.</p>
-        </LayoutView>
-    </NotFound>
-</Router>
+<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(Program).Assembly">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+                <NotAuthorized>
+                    <LayoutView Layout="@typeof(MainLayout)">
+                        <section class="not-authorized">
+                            <h1>Sign in to continue</h1>
+                            <p>Use the login button in the top-right corner to authenticate before opening the dashboard.</p>
+                        </section>
+                    </LayoutView>
+                </NotAuthorized>
+            </AuthorizeRouteView>
+        </Found>
+        <NotFound>
+            <LayoutView Layout="@typeof(MainLayout)">
+                <section class="not-found">
+                    <h1>Page not found</h1>
+                    <p>Sorry, we couldn't find the page you requested.</p>
+                </section>
+            </LayoutView>
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>
+
+<style>
+    .not-authorized,
+    .not-found {
+        max-width: 560px;
+        margin: 4rem auto;
+        background: rgba(255, 255, 255, 0.85);
+        padding: 2.5rem;
+        border-radius: 18px;
+        box-shadow: 0 20px 45px rgba(24, 40, 72, 0.18);
+        text-align: center;
+    }
+
+    .not-authorized h1,
+    .not-found h1 {
+        margin-bottom: 1rem;
+        font-size: 2rem;
+        color: #1f2a44;
+    }
+
+    .not-authorized p,
+    .not-found p {
+        margin: 0;
+        color: #4c5d7a;
+        line-height: 1.6;
+    }
+</style>

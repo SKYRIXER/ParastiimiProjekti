@@ -15,17 +15,32 @@ namespace db_testiä.Services
             _users = database.GetCollection<User>("users");
         }
 
-        public List<User> Get() => _users.Find(user => true).ToList();
-
-        public User Get(string id) => _users.Find(user => user.Id == id).FirstOrDefault();
-
-        public User Create(User user)
+        public async Task<List<User>> GetAsync()
         {
-            _users.InsertOne(user);
+            return await _users.Find(user => true).ToListAsync();
+        }
+
+        public async Task<User?> GetAsync(string id)
+        {
+            return await _users.Find(user => user.Id == id).FirstOrDefaultAsync();
+        }
+
+        public async Task<User?> GetByNameAsync(string name)
+        {
+            return await _users.Find(user => user.Name == name).FirstOrDefaultAsync();
+        }
+
+        public async Task<User> CreateAsync(User user)
+        {
+            await _users.InsertOneAsync(user);
             return user;
         }
 
-        public void Delete(string id) => _users.DeleteOne(user => user.Id == id);
+        public async Task<bool> DeleteAsync(string id)
+        {
+            var result = await _users.DeleteOneAsync(user => user.Id == id);
+            return result.DeletedCount > 0;
+        }
     }
 
     public class MongoDBSettings

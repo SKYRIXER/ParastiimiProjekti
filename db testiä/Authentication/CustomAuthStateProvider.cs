@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using db_testiä.Models;
@@ -36,7 +37,8 @@ namespace db_testiä.Authentication
                 var session = storedSession.Value;
                 if (string.IsNullOrWhiteSpace(session.UserName))
                 {
-                    await _sessionStorage.DeleteAsync(SessionKey);
+
+                    await TryDeleteSessionAsync("empty user name");
                     return new AuthenticationState(Anonymous);
                 }
 
@@ -45,8 +47,16 @@ namespace db_testiä.Authentication
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to read the authentication session.");
-                await _sessionStorage.DeleteAsync(SessionKey);
+                if (IsJavaScriptInteropUnavailable(ex))
+                {
+                    _logger.LogDebug(ex, "Authentication state defaults to anonymous while JavaScript interop is unavailable during prerendering.");
+                }
+                else
+                {
+                    _logger.LogWarning(ex, "Failed to read the authentication session.");
+                    await TryDeleteSessionAsync("read failure");
+                }
+
                 return new AuthenticationState(Anonymous);
             }
         }
@@ -55,7 +65,7 @@ namespace db_testiä.Authentication
         {
             if (session is null)
             {
-                await _sessionStorage.DeleteAsync(SessionKey);
+                await TryDeleteSessionAsync("logout");
                 NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(Anonymous)));
                 return;
             }
@@ -80,6 +90,31 @@ namespace db_testiä.Authentication
 
             var identity = new ClaimsIdentity(claims, nameof(CustomAuthStateProvider));
             return new ClaimsPrincipal(identity);
+        }
+
+        private async Task TryDeleteSessionAsync(string reason)
+        {
+            try
+            {
+                await _sessionStorage.DeleteAsync(SessionKey);
+            }
+            catch (Exception cleanupEx)
+            {
+                if (IsJavaScriptInteropUnavailable(cleanupEx))
+                {
+                    _logger.LogDebug(cleanupEx, "Skipped clearing the authentication session ({Reason}) because JavaScript interop is unavailable.", reason);
+                }
+                else
+                {
+                    _logger.LogDebug(cleanupEx, "Failed to clear the authentication session ({Reason}).", reason);
+                }
+            }
+        }
+
+        private static bool IsJavaScriptInteropUnavailable(Exception exception)
+        {
+            return exception is InvalidOperationException invalidOperationException &&
+                invalidOperationException.Message.Contains("JavaScript interop calls cannot be issued", StringComparison.Ordinal);
         }
     }
 }

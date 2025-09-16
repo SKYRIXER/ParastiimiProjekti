@@ -25,7 +25,9 @@ namespace db_testiä.Services
             return await _users.Find(user => user.Id == id).FirstOrDefaultAsync();
         }
 
+
         public async Task<User?> GetByNameAsync(string name)
+
         {
             return await _users.Find(user => user.Name == name).FirstOrDefaultAsync();
         }

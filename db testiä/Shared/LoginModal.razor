@@ -7,6 +7,7 @@
 @inject CustomAuthStateProvider AuthStateProvider
 @inject AuthService AuthService
 
+
 @if (IsOpen)
 {
     <div class="login-modal__overlay" @onclick="Close">
@@ -160,6 +161,7 @@
                 default:
                     SetFeedback(result.ErrorMessage ?? "Failed to sign in due to an unexpected error.", isError: true);
                     break;
+
             }
         }
         catch (Exception ex)
@@ -453,7 +455,7 @@
         opacity: 1;
     }
 
-    @keyframes login-modal-fade {
+    @@keyframes login-modal-fade {
         from {
             transform: translateY(12px);
             opacity: 0;
@@ -465,7 +467,7 @@
         }
     }
 
-    @media (max-width: 480px) {
+    @@media (max-width: 480px) {
         .login-modal {
             padding: 2rem 1.5rem 2.25rem;
         }

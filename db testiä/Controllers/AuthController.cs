@@ -9,6 +9,7 @@ namespace db_testiä.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
+
         private readonly AuthService _authService;
 
         public AuthController(AuthService authService)
@@ -18,6 +19,7 @@ namespace db_testiä.Controllers
 
         [HttpPost("login")]
         public async Task<ActionResult<LoginResponse>> Login(LoginRequest request)
+
         {
             if (!ModelState.IsValid)
             {
@@ -36,6 +38,7 @@ namespace db_testiä.Controllers
                 LoginFailureReason.InvalidCredentials => Unauthorized(new { message = result.ErrorMessage ?? "Invalid username or password." }),
                 _ => StatusCode(StatusCodes.Status500InternalServerError, new { message = result.ErrorMessage ?? "An unexpected error occurred while signing in." })
             };
+
         }
     }
 }

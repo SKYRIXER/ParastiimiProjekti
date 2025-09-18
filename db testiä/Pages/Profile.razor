@@ -1,0 +1,111 @@
+@page "/profile"
+@attribute [Authorize]
+
+<section class="profile-card">
+    <h2>User Profile</h2>
+    <p class="lead">Manage your personal information below.</p>
+
+    <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" @bind="FullName" class="form-input" />
+    </div>
+
+    <div class="form-group">
+        <label>Email</label>
+        <input type="email" @bind="Email" class="form-input" />
+    </div>
+
+    <div class="form-group">
+        <label>Position</label>
+        <input type="text" @bind="Position" class="form-input" />
+    </div>
+
+    <div class="form-group">
+        <label>Phone</label>
+        <input type="tel" @bind="Phone" class="form-input" />
+    </div>
+
+    <button class="primary" @onclick="SaveProfile">Save Changes</button>
+
+    @if (Saved)
+    {
+        <div class="result">
+            <h3>Profile Updated</h3>
+            <p>Your changes have been saved successfully.</p>
+        </div>
+    }
+</section>
+
+<style>
+    .profile-card {
+        max-width: 600px;
+        margin: 2rem auto;
+        background: #fff;
+        padding: 2rem;
+        border-radius: 16px;
+        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+
+        .profile-card h2 {
+            margin-bottom: 1rem;
+            color: #1f2937;
+        }
+
+        .profile-card .lead {
+            margin-bottom: 2rem;
+            color: #4b5563;
+        }
+
+    .form-group {
+        margin-bottom: 1rem;
+        text-align: left;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 0.6rem;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        margin-top: 0.25rem;
+    }
+
+    .primary {
+        margin-top: 1rem;
+        background: #2563eb;
+        color: #fff;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+    }
+
+        .primary:hover {
+            background: #1d4ed8;
+        }
+
+    .result {
+        margin-top: 2rem;
+        text-align: center;
+        background: #f0fdf4;
+        padding: 1rem;
+        border-radius: 12px;
+        border: 1px solid #86efac;
+        color: #166534;
+    }
+</style>
+
+@code {
+    private string FullName { get; set; } = "John Doe";
+    private string Email { get; set; } = "john.doe@example.com";
+    private string Position { get; set; } = "Software Developer";
+    private string Phone { get; set; } = "+358 40 123 4567";
+    private bool Saved { get; set; }
+
+    private void SaveProfile()
+    {
+        // In a real app you’d send this to your API / database
+        Saved = true;
+    }
+}

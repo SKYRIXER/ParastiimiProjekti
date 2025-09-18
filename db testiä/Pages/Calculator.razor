@@ -1,0 +1,111 @@
+@page "/calculator"
+@attribute [Authorize]
+
+<section class="salary-card">
+    <h2>Salary Calculator</h2>
+    <p class="lead">Quickly calculate your gross and net salary based on hourly rate, hours worked, and tax percentage.</p>
+
+    <div class="form-group">
+        <label>Hourly Rate (€)</label>
+        <input type="number" @bind="HourlyRate" step="0.01" class="form-input" />
+    </div>
+
+    <div class="form-group">
+        <label>Hours Worked</label>
+        <input type="number" @bind="HoursWorked" step="0.1" class="form-input" />
+    </div>
+
+    <div class="form-group">
+        <label>Tax Percentage (%)</label>
+        <input type="number" @bind="TaxPercentage" step="0.1" class="form-input" />
+    </div>
+
+    <button class="primary" @onclick="CalculateSalary">Calculate</button>
+
+    @if (Calculated)
+    {
+        <div class="result">
+            <h3>Results</h3>
+            <p><strong>Gross Salary:</strong> €@GrossSalary</p>
+            <p><strong>Net Salary (after tax):</strong> €@NetSalary</p>
+        </div>
+    }
+</section>
+
+<style>
+    .salary-card {
+        max-width: 600px;
+        margin: 2rem auto;
+        background: #fff;
+        padding: 2rem;
+        border-radius: 16px;
+        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+
+        .salary-card h2 {
+            margin-bottom: 1rem;
+            color: #1f2937;
+        }
+
+        .salary-card .lead {
+            margin-bottom: 2rem;
+            color: #4b5563;
+        }
+
+    .form-group {
+        margin-bottom: 1rem;
+        text-align: left;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 0.6rem;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        margin-top: 0.25rem;
+    }
+
+    .primary {
+        margin-top: 1rem;
+        background: #2563eb;
+        color: #fff;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+    }
+
+        .primary:hover {
+            background: #1d4ed8;
+        }
+
+    .result {
+        margin-top: 2rem;
+        text-align: left;
+        background: #f9fafb;
+        padding: 1rem;
+        border-radius: 12px;
+    }
+
+        .result h3 {
+            margin-bottom: 0.5rem;
+        }
+</style>
+
+@code {
+    private decimal HourlyRate { get; set; }
+    private decimal HoursWorked { get; set; }
+    private decimal TaxPercentage { get; set; }
+    private decimal GrossSalary { get; set; }
+    private decimal NetSalary { get; set; }
+    private bool Calculated { get; set; }
+
+    private void CalculateSalary()
+    {
+        GrossSalary = HourlyRate * HoursWorked;
+        NetSalary = GrossSalary - (GrossSalary * (TaxPercentage / 100));
+        Calculated = true;
+    }
+}

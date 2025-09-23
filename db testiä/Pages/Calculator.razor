@@ -6,19 +6,10 @@
     <p class="lead">Quickly calculate your gross and net salary based on hourly rate, hours worked, and tax percentage.</p>
 
     <div class="form-group">
-        <label>Hourly Rate (€)</label>
-        <input type="number" @bind="HourlyRate" step="0.01" class="form-input" />
-    </div>
-
-    <div class="form-group">
         <label>Hours Worked</label>
         <input type="number" @bind="HoursWorked" step="0.1" class="form-input" />
     </div>
 
-    <div class="form-group">
-        <label>Tax Percentage (%)</label>
-        <input type="number" @bind="TaxPercentage" step="0.1" class="form-input" />
-    </div>
 
     <button class="primary" @onclick="CalculateSalary">Calculate</button>
 
@@ -95,17 +86,13 @@
 </style>
 
 @code {
-    private decimal HourlyRate { get; set; }
     private decimal HoursWorked { get; set; }
-    private decimal TaxPercentage { get; set; }
     private decimal GrossSalary { get; set; }
     private decimal NetSalary { get; set; }
     private bool Calculated { get; set; }
 
     private void CalculateSalary()
     {
-        GrossSalary = HourlyRate * HoursWorked;
-        NetSalary = GrossSalary - (GrossSalary * (TaxPercentage / 100));
-        Calculated = true;
+
     }
 }

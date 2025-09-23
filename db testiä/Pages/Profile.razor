@@ -34,7 +34,7 @@
         <label>Tax Percentage (%)</label>
         <input type="number" @bind="TaxPercentage" step="0.1" class="form-input" />
     </div>
-
+    <button class="primary" @onclick="AddNew">Add a bonus</button>
     <button class="primary" @onclick="SaveProfile">Save Changes</button>
 
     @if (Saved)
@@ -115,6 +115,10 @@
     private decimal TaxPercentage { get; set; }
     private bool Saved { get; set; }
 
+    private void AddNew()
+    {
+        // Pull bonuses data table and make user fill it, send filled data back to database (:
+    }
 
     private void SaveProfile()
     {

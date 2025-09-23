@@ -6,7 +6,7 @@ namespace db_testiä.Models
 {
     public class Data
     {
-        [BsonId]  // MongoDB:n ObjectId
+        [BsonId]  // MongoDB:n ObjectId.
         [BsonRepresentation(BsonType.ObjectId)]
         public string? Id { get; set; }
         public string user_id { get; set; } = string.Empty;

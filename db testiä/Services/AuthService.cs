@@ -6,11 +6,13 @@ namespace db_testiä.Services
     public class AuthService
     {
         private readonly UserService _userService;
+        private readonly UserDataService _userDataService;
         private readonly ILogger<AuthService> _logger;
 
-        public AuthService(UserService userService, ILogger<AuthService> logger)
+        public AuthService(UserService userService, UserDataService userDataService, ILogger<AuthService> logger)
         {
             _userService = userService;
+            _userDataService = userDataService;
             _logger = logger;
         }
 
@@ -89,6 +91,20 @@ namespace db_testiä.Services
                 };
 
                 await _userService.CreateAsync(user);
+
+                if (!string.IsNullOrEmpty(user.Id))
+                {
+                    try
+                    {
+                        await _userDataService.GetOrCreateForUserAsync(user.Id);
+                    }
+                    catch (Exception dataException)
+                    {
+                        _logger.LogError(dataException, "Failed to create profile data for user {UserName} ({UserId}).", name, user.Id);
+                        await _userService.DeleteAsync(user.Id);
+                        return CreateUserResult.Failure("Failed to create the initial profile data for the user. Please try again.");
+                    }
+                }
 
                 return CreateUserResult.Success(user);
             }

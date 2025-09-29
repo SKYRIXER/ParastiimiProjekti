@@ -10,6 +10,7 @@ builder.Services.Configure<MongoDBSettings>(
     builder.Configuration.GetSection("MongoDBSettings"));
 
 builder.Services.AddSingleton<UserService>();
+builder.Services.AddSingleton<UserDataService>();
 builder.Services.AddScoped<AuthService>();
 
 builder.Services.AddControllers();

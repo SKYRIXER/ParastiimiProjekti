@@ -1,128 +1,545 @@
 @page "/profile"
 @attribute [Authorize]
+@using System
+@using System.Security.Claims
+@using db_testiä.Services
+@inject UserService UserService
+@inject UserDataService UserDataService
 
 <section class="profile-card">
     <h2>User Profile</h2>
-    <p class="lead">Manage your personal information below.</p>
+    <p class="lead">Manage your personal compensation information below.</p>
 
-    <div class="form-group">
-        <label>Full Name</label>
-        <input type="text" @bind="FullName" class="form-input" />
-    </div>
-
-    <div class="form-group">
-        <label>Email</label>
-        <input type="email" @bind="Email" class="form-input" />
-    </div>
-
-    <div class="form-group">
-        <label>Position</label>
-        <input type="text" @bind="Position" class="form-input" />
-    </div>
-
-    <div class="form-group">
-        <label>Phone</label>
-        <input type="tel" @bind="Phone" class="form-input" />
-    </div>
-
-    <div class="form-group">
-        <label>Hourly Rate (€)</label>
-        <input type="number" @bind="HourlyRate" step="0.01" class="form-input" />
-    </div>
-
-    <div class="form-group">
-        <label>Tax Percentage (%)</label>
-        <input type="number" @bind="TaxPercentage" step="0.1" class="form-input" />
-    </div>
-    <button class="primary" @onclick="AddNew">Add a bonus</button>
-    <button class="primary" @onclick="SaveProfile">Save Changes</button>
-
-    @if (Saved)
+    @if (isLoading)
     {
-        <div class="result">
-            <h3>Profile Updated</h3>
-            <p>Your changes have been saved successfully.</p>
+        <p class="muted">Loading your profile...</p>
+    }
+    else if (!string.IsNullOrEmpty(loadError))
+    {
+        <div class="alert alert--error">@loadError</div>
+    }
+    else
+    {
+        <div class="form-group">
+            <label>Name</label>
+            <input type="text" class="form-input" value="@FullName" readonly />
         </div>
+
+        <div class="form-group">
+            <label>Age</label>
+            <input type="number" class="form-input" value="@Age" readonly />
+        </div>
+
+        <div class="form-group">
+            <label>Base salary (€)</label>
+            <input type="number" step="0.01" @bind="BaseSalary" class="form-input" />
+        </div>
+
+        <div class="form-group">
+            <label>Tax percentage (%)</label>
+            <input type="number" step="0.1" @bind="TaxPercentage" class="form-input" />
+        </div>
+
+        <section class="bonuses">
+            <div class="bonuses__header">
+                <h3>Bonuses</h3>
+                <button type="button" class="secondary" @onclick="AddNew" disabled="@isSaving">Add bonus</button>
+            </div>
+
+            @if (Bonuses.Count == 0)
+            {
+                <p class="muted">No bonuses configured yet.</p>
+            }
+            else
+            {
+                <div class="bonus-list">
+                    @for (var index = 0; index < Bonuses.Count; index++)
+                    {
+                        var bonus = Bonuses[index];
+                        <div class="bonus-item">
+                            <div class="bonus-fields">
+                                <label>
+                                    Category
+                                    <input type="text" class="form-input" @bind="bonus.Category" />
+                                </label>
+                                <label>
+                                    Amount (€)
+                                    <input type="number" step="0.01" class="form-input" @bind="bonus.Amount" />
+                                </label>
+                                <label class="checkbox">
+                                    <input type="checkbox" @bind="bonus.IsActive" />
+                                    Active
+                                </label>
+                            </div>
+                            <button type="button" class="danger" @onclick="() => RemoveBonus(bonus)" disabled="@isSaving">Remove</button>
+                        </div>
+                    }
+                </div>
+            }
+        </section>
+
+        <div class="actions">
+            <button class="primary" @onclick="SaveProfile" disabled="@isSaving">@(isSaving ? "Saving..." : "Save changes")</button>
+        </div>
+
+        @if (!string.IsNullOrEmpty(saveError))
+        {
+            <div class="alert alert--error">@saveError</div>
+        }
+        else if (Saved)
+        {
+            <div class="result">
+                <h3>Profile updated</h3>
+                <p>Your salary information has been saved successfully.</p>
+            </div>
+        }
     }
 </section>
 
 <style>
     .profile-card {
-        max-width: 600px;
+        max-width: 680px;
         margin: 2rem auto;
-        background: #fff;
+        background: #ffffff;
         padding: 2rem;
-        border-radius: 16px;
-        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.1);
-        text-align: center;
+        border-radius: 20px;
+        box-shadow: 0 18px 36px rgba(15, 23, 42, 0.12);
     }
 
         .profile-card h2 {
-            margin-bottom: 1rem;
+            margin: 0 0 0.75rem;
             color: #1f2937;
         }
 
         .profile-card .lead {
-            margin-bottom: 2rem;
+            margin: 0 0 2rem;
             color: #4b5563;
         }
 
     .form-group {
-        margin-bottom: 1rem;
-        text-align: left;
+        margin-bottom: 1.25rem;
     }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.35rem;
+        }
 
     .form-input {
         width: 100%;
-        padding: 0.6rem;
+        padding: 0.65rem 0.75rem;
         border: 1px solid #d1d5db;
-        border-radius: 8px;
-        margin-top: 0.25rem;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        background: #f9fafb;
+    }
+
+        .form-input[readonly] {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+    .bonuses {
+        margin-top: 2rem;
+    }
+
+    .bonuses__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+        .bonuses__header h3 {
+            margin: 0;
+            color: #1f2937;
+        }
+
+    .bonus-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .bonus-item {
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 1rem 1.25rem;
+        background: #f9fafb;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .bonus-fields {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 1rem;
+        align-items: end;
+    }
+
+    .checkbox {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+        .checkbox input {
+            width: auto;
+        }
+
+    .actions {
+        margin-top: 2rem;
+        display: flex;
+        justify-content: flex-end;
     }
 
     .primary {
-        margin-top: 1rem;
         background: #2563eb;
         color: #fff;
         border: none;
-        padding: 0.75rem 1.5rem;
-        border-radius: 8px;
+        padding: 0.75rem 1.75rem;
+        border-radius: 10px;
         cursor: pointer;
         font-size: 1rem;
+        font-weight: 600;
+        transition: background 0.2s ease;
     }
 
-        .primary:hover {
+        .primary:disabled {
+            opacity: 0.65;
+            cursor: default;
+        }
+
+        .primary:not(:disabled):hover {
             background: #1d4ed8;
         }
 
-    .result {
-        margin-top: 2rem;
-        text-align: center;
-        background: #f0fdf4;
-        padding: 1rem;
+    .secondary {
+        background: #f3f4f6;
+        color: #1f2937;
+        border: none;
+        padding: 0.55rem 1.25rem;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s ease;
+    }
+
+        .secondary:disabled {
+            opacity: 0.6;
+            cursor: default;
+        }
+
+        .secondary:not(:disabled):hover {
+            background: #e5e7eb;
+        }
+
+    .danger {
+        align-self: flex-end;
+        background: #ef4444;
+        color: #fff;
+        border: none;
+        padding: 0.5rem 1.1rem;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s ease;
+    }
+
+        .danger:disabled {
+            opacity: 0.5;
+            cursor: default;
+        }
+
+        .danger:not(:disabled):hover {
+            background: #dc2626;
+        }
+
+    .muted {
+        color: #6b7280;
+    }
+
+    .alert {
+        margin-top: 1.5rem;
+        padding: 1rem 1.25rem;
         border-radius: 12px;
+        font-weight: 600;
+    }
+
+    .alert--error {
+        background: #ffe4e6;
+        color: #be123c;
+        border: 1px solid rgba(190, 18, 60, 0.35);
+    }
+
+    .result {
+        margin-top: 1.5rem;
+        background: #f0fdf4;
         border: 1px solid #86efac;
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
         color: #166534;
+    }
+
+        .result h3 {
+            margin: 0 0 0.35rem;
+        }
+
+    @@media (max-width: 640px) {
+        .profile-card {
+            padding: 1.75rem;
+        }
+
+        .bonus-item {
+            padding: 0.85rem 1rem;
+        }
+
+        .actions {
+            justify-content: stretch;
+        }
+
+        .primary {
+            width: 100%;
+            text-align: center;
+        }
+
+        .danger {
+            width: 100%;
+        }
     }
 </style>
 
 @code {
-    private string FullName { get; set; } = "John Doe";
-    private string Email { get; set; } = "john.doe@example.com";
-    private string Position { get; set; } = "Software Developer";
-    private string Phone { get; set; } = "+358 40 123 4567";
-    private decimal HourlyRate { get; set; }
-    private decimal TaxPercentage { get; set; }
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
+
+    private string? userId;
+    private string FullName { get; set; } = string.Empty;
+    private int Age { get; set; }
+    private string? dataId;
+    private bool isLoading = true;
+    private bool isSaving;
+    private string? loadError;
+    private string? saveError;
     private bool Saved { get; set; }
+
+    private decimal baseSalary;
+    private decimal BaseSalary
+    {
+        get => baseSalary;
+        set
+        {
+            if (baseSalary != value)
+            {
+                baseSalary = value;
+                MarkDirty();
+            }
+        }
+    }
+
+    private decimal taxPercentage;
+    private decimal TaxPercentage
+    {
+        get => taxPercentage;
+        set
+        {
+            if (taxPercentage != value)
+            {
+                taxPercentage = value;
+                MarkDirty();
+            }
+        }
+    }
+
+    private List<BonusModel> Bonuses { get; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateTask;
+        var principal = authState.User;
+
+        userId = principal.FindFirst("UserId")?.Value ?? principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId))
+        {
+            loadError = "Unable to determine the current user.";
+            isLoading = false;
+            return;
+        }
+
+        try
+        {
+            var user = await UserService.GetAsync(userId);
+            if (user is null)
+            {
+                loadError = "Unable to locate your user record.";
+                return;
+            }
+
+            FullName = user.Name;
+            Age = user.Age;
+
+            var data = await UserDataService.GetOrCreateForUserAsync(userId);
+            dataId = data.Id;
+            baseSalary = data.BaseSalary;
+            taxPercentage = data.TaxPercentage;
+
+            Bonuses.Clear();
+            if (data.Bonuses is not null)
+            {
+                foreach (var bonus in data.Bonuses)
+                {
+                    var model = new BonusModel(MarkDirty);
+                    model.Initialize(bonus.Category, bonus.Amount, bonus.IsActive);
+                    Bonuses.Add(model);
+                }
+            }
+
+            saveError = null;
+            Saved = false;
+        }
+        catch (Exception ex)
+        {
+            loadError = $"Failed to load your profile: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task SaveProfile()
+    {
+        if (isSaving || isLoading || !string.IsNullOrEmpty(loadError) || string.IsNullOrEmpty(userId))
+        {
+            return;
+        }
+
+        isSaving = true;
+        saveError = null;
+        Saved = false;
+
+        try
+        {
+            var document = new Data
+            {
+                Id = dataId,
+                UserId = userId!,
+                BaseSalary = BaseSalary,
+                TaxPercentage = TaxPercentage,
+                Bonuses = Bonuses.Select(b => new Data.Bonus
+                {
+                    Category = b.Category?.Trim() ?? string.Empty,
+                    Amount = b.Amount,
+                    IsActive = b.IsActive
+                }).ToList()
+            };
+
+            var savedDocument = await UserDataService.UpsertAsync(document);
+            dataId = savedDocument.Id;
+            Saved = true;
+        }
+        catch (Exception ex)
+        {
+            saveError = $"Failed to save your profile: {ex.Message}";
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
 
     private void AddNew()
     {
-        // Pull bonuses data table and make user fill it, send filled data back to database (:
+        if (isLoading || !string.IsNullOrEmpty(loadError))
+        {
+            return;
+        }
+
+        var model = new BonusModel(MarkDirty);
+        model.Initialize(string.Empty, 0m, true);
+        Bonuses.Add(model);
+        MarkDirty();
     }
 
-    private void SaveProfile()
+    private void RemoveBonus(BonusModel bonus)
     {
-        // In a real app you’d send this to your API / database
-        Saved = true;
+        if (Bonuses.Remove(bonus))
+        {
+            MarkDirty();
+        }
+    }
+
+    private void MarkDirty()
+    {
+        if (Saved)
+        {
+            Saved = false;
+        }
+
+        saveError = null;
+    }
+
+    private sealed class BonusModel
+    {
+        private readonly Action markDirty;
+        private string? category;
+        private decimal amount;
+        private bool isActive = true;
+
+        public BonusModel(Action markDirty)
+        {
+            this.markDirty = markDirty;
+        }
+
+        public string? Category
+        {
+            get => category;
+            set
+            {
+                if (category != value)
+                {
+                    category = value;
+                    markDirty();
+                }
+            }
+        }
+
+        public decimal Amount
+        {
+            get => amount;
+            set
+            {
+                if (amount != value)
+                {
+                    amount = value;
+                    markDirty();
+                }
+            }
+        }
+
+        public bool IsActive
+        {
+            get => isActive;
+            set
+            {
+                if (isActive != value)
+                {
+                    isActive = value;
+                    markDirty();
+                }
+            }
+        }
+
+        public void Initialize(string? initialCategory, decimal initialAmount, bool initialIsActive)
+        {
+            category = initialCategory;
+            amount = initialAmount;
+            isActive = initialIsActive;
+        }
     }
 }

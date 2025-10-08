@@ -17,11 +17,13 @@
             </button>
 
             <h2 id="login-modal-title">@(isCreating ? "Create a user" : "Welcome back")</h2>
-            <p class="login-modal__subtitle">@(isCreating
-                    ? "Create a user account to access the dashboard."
-                    : "Sign in to manage MongoDB users from the dashboard.")</p>
+            <p class="login-modal__subtitle">
+                @(isCreating
+                            ? "Create a user account to access the dashboard."
+                            : "Sign in to manage MongoDB users from the dashboard.")
+        </p>
 
-            @if (!string.IsNullOrWhiteSpace(feedbackMessage))
+        @if (!string.IsNullOrWhiteSpace(feedbackMessage))
             {
                 <div class="login-modal__feedback @(feedbackIsError ? "login-modal__feedback--error" : "login-modal__feedback--success")">
                     @feedbackMessage
@@ -325,10 +327,11 @@
         position: relative;
         z-index: 1;
         width: min(420px, 100%);
-        background: #ffffff;
-        border-radius: 22px;
-        padding: 2.25rem 2.1rem 2.5rem;
-        box-shadow: 0 35px 65px rgba(24, 40, 72, 0.25);
+        background: var(--sage-50);
+        border: 1px solid var(--sage-300);
+        border-radius: 0;
+        padding: 2rem 1.5rem 2.25rem;
+        box-shadow: none;
         animation: login-modal-fade 180ms ease-out;
     }
 
@@ -336,41 +339,41 @@
         position: absolute;
         top: 1rem;
         right: 1rem;
-        border: none;
-        background: rgba(24, 40, 72, 0.08);
-        color: #182848;
-        width: 2.25rem;
-        height: 2.25rem;
-        border-radius: 50%;
-        font-size: 1.25rem;
+        border: 1px solid var(--sage-400);
+        background: var(--sage-200);
+        color: var(--sage-800);
+        width: 2rem;
+        height: 2rem;
+        border-radius: 0;
+        font-size: 1rem;
         font-weight: 600;
         cursor: pointer;
         transition: transform 0.15s ease, background-color 0.15s ease;
     }
 
-    .login-modal__close:hover {
-        transform: scale(1.05);
-        background: rgba(24, 40, 72, 0.16);
-    }
+        .login-modal__close:hover {
+            transform: scale(1.03);
+            background: var(--sage-300);
+        }
 
     .login-modal h2 {
         margin: 0 0 0.5rem;
-        font-size: 1.65rem;
-        color: #1f2a44;
+        font-size: 1.6rem;
+        color: var(--sage-800);
         font-weight: 700;
     }
 
     .login-modal__subtitle {
-        margin: 0 0 1.5rem;
-        color: #4c5d7a;
+        margin: 0 0 1.25rem;
+        color: #2a3a33;
         line-height: 1.6;
     }
 
     .login-modal__feedback {
-        padding: 0.85rem 1rem;
-        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        border-radius: 0;
         font-weight: 600;
-        margin-bottom: 1.5rem;
+        margin-bottom: 1.25rem;
     }
 
     .login-modal__feedback--error {
@@ -380,9 +383,9 @@
     }
 
     .login-modal__feedback--success {
-        background: #e8f8f1;
-        color: #13795b;
-        border: 1px solid rgba(19, 121, 91, 0.2);
+        background: var(--sage-100);
+        color: var(--sage-800);
+        border: 1px solid var(--sage-300);
     }
 
     .login-modal__fields {
@@ -395,24 +398,26 @@
     .login-modal__field {
         display: flex;
         flex-direction: column;
-        gap: 0.4rem;
+        gap: 0.35rem;
         font-weight: 600;
-        color: #2f3b58;
+        color: var(--ink);
     }
 
     .login-modal__input {
-        border-radius: 12px;
-        border: 1px solid #c8d1ea;
-        padding: 0.7rem 0.85rem;
+        border-radius: 0;
+        border: 1px solid var(--sage-300);
+        padding: 0.55rem 0.7rem;
         font-size: 1rem;
         transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        outline: none;
+        box-shadow: inset 0 1px 3px rgba(0,0,0,.04);
     }
 
-    .login-modal__input:focus {
-        outline: none;
-        border-color: #4b6cb7;
-        box-shadow: 0 0 0 3px rgba(75, 108, 183, 0.2);
-    }
+        .login-modal__input:focus {
+            outline: none;
+            border-color: var(--sage-600);
+            box-shadow: 0 0 0 3px rgba(77, 141, 118, 0.18);
+        }
 
     .validation-message {
         font-size: 0.85rem;
@@ -422,45 +427,42 @@
 
     .login-modal__submit {
         width: 100%;
-        border: none;
-        border-radius: 999px;
-        background: linear-gradient(135deg, #4b6cb7, #182848);
+        border: 1px solid var(--sage-800);
+        border-radius: 0;
+        background: var(--sage-700);
         color: #ffffff;
         font-size: 1.05rem;
         font-weight: 700;
-        padding: 0.85rem 1.25rem;
+        box-shadow: 0 4px 0 var(--sage-800);
+        padding: 0.7rem 1rem;
         cursor: pointer;
-        box-shadow: 0 16px 32px rgba(24, 40, 72, 0.28);
-        transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+        transition: background-color 0.15s ease, opacity 0.15s ease;
     }
 
-    .login-modal__submit:disabled {
-        opacity: 0.65;
-        cursor: default;
-        box-shadow: none;
-    }
+        .login-modal__submit:disabled {
+            opacity: 0.65;
+            cursor: default;
+            box-shadow: none;
+        }
 
-    .login-modal__submit:not(:disabled):hover {
-        transform: translateY(-1px);
-        box-shadow: 0 20px 38px rgba(24, 40, 72, 0.35);
-    }
+        .login-modal__submit:not(:disabled):hover {
+            background: var(--sage-800);
+        }
 
     .login-modal__toggle {
-        margin-top: 1.25rem;
+        margin-top: 1rem;
         border: none;
         background: transparent;
-        color: #4b6cb7;
+        color: var(--sage-700);
         font-weight: 600;
-        font-size: 0.85rem;
-        text-decoration: underline;
         cursor: pointer;
-        opacity: 0.85;
+        opacity: .95;
         transition: opacity 0.15s ease;
     }
 
-    .login-modal__toggle:hover {
-        opacity: 1;
-    }
+        .login-modal__toggle:hover {
+            opacity: 1;
+        }
 
     @@keyframes login-modal-fade {
         from {
@@ -476,11 +478,22 @@
 
     @@media (max-width: 480px) {
         .login-modal {
+            position: relative;
+            z-index: 1;
+            width: min(420px, 100%);
+            background: #ffffff;
+            border: 1px solid var(--sage-300);
+            border-radius: 0;
             padding: 2rem 1.5rem 2.25rem;
+            box-shadow: none;
+            animation: login-modal-fade 180ms ease-out;
         }
 
-        .login-modal h2 {
-            font-size: 1.45rem;
-        }
+            .login-modal h2 {
+                margin: 0 0 0.5rem;
+                font-size: 1.6rem;
+                color: var(--sage-800);
+                font-weight: 700;
+            }
     }
 </style>

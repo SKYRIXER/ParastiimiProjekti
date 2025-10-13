@@ -7,8 +7,10 @@
 @inject UserDataService UserDataService
 
 <section class="profile-card">
-    <h2>User Profile</h2>
-    <p class="lead">Here you can manage your personal salary information and also create new variables if needed.</p>
+    <div class="card-intro">
+        <h1> User Profile </h1>
+        <p class="lead">Here you can manage your personal salary information and also create new variables if needed.</p>
+    </div>
 
     @if (isLoading)
     {
@@ -43,8 +45,9 @@
         </div>
 
         <section class="bonuses">
+            <hr>
             <div class="bonuses__header">
-                <h3>Bonuses</h3>
+                <h2>Bonuses</h2>
                 <button type="button" class="secondary" @onclick="AddNew" disabled="@isSaving">Add bonus</button>
             </div>
 
@@ -112,30 +115,33 @@
         justify-content: flex-start;
     }
 
-        .profile-card h2 {
+        .profile-card h1 {
             margin: 0 0 0.75rem;
             color: #1f2937;
+            text-decoration: underline 2px rgb(141, 168, 145, 0.5);
+            text-underline-offset: 0.5rem;
         }
 
         .profile-card .lead {
-            margin: 0 0 2rem;
+            margin: 0 0 1rem;
             color: #4b5563;
         }
 
-	.form-group-frame {
-        width: contain;
+    .form-group-frame {
+        width: calc(100% + 8rem);
+        position: relative;
+        left: -4rem;
+        padding: 2rem 0rem;
         justify-items: center;
-		display: grid;
+        display: grid;
         grid-template-columns: auto auto;
         grid-auto-flow: row;
-		
-        border-inline: 4px solid rgb(29, 104, 64, 10%);
+        box-shadow: 0 14px 2px 0 white inset, 0 -14px 2px 0 white inset, 10px 0 15px -4px #8da891 inset, -10px 0 15px -4px #8da891 inset;
     }
 
     .form-group {
-        
         margin: 0.5rem 1rem 0.5rem 1rem;
-		width: 20rem;
+        width: 20rem;
     }
 
         .form-group label {
@@ -159,21 +165,32 @@
             color: #6b7280;
         }
 
+    hr {
+        height: 2px;
+        border-width: 0;
+        background-color: rgba(29, 104, 64);
+        box-shadow: 6px 0px 6px rgb(255, 255, 255) inset, -6px 0px 6px rgb(255, 255, 255) inset;
+    }
+
     .bonuses {
-        margin-top: 2rem;
+        margin-left: 1rem;
+        margin-right: 1rem;
     }
 
     .bonuses__header {
         display: flex;
         justify-content: space-between;
-        align-items: baseline;
+        align-items: flex-end;
         margin-bottom: 1rem;
+        margin-top: 2rem;
+        border-bottom: 1px solid #e5e7eb;
+        border-bottom-right-radius: 8px;
     }
 
-        .bonuses__header h3 {
+        .bonuses__header h2 {
             margin: 0;
             color: #1f2937;
-			font-size: 1.25rem;
+            padding-bottom: 0.3rem;
         }
 
     .bonus-list {
@@ -218,7 +235,7 @@
     }
 
     .primary {
-        background: #1D6840;
+        background: linear-gradient(135deg, #298353, #182848);
         color: #fff;
         border: none;
         padding: 0.75rem 1.75rem;
@@ -242,7 +259,7 @@
         background: #f3f4f6;
         color: #1f2937;
         border: none;
-        padding: 0.55rem 1.25rem;
+        padding: 0.4rem 1rem;
         border-radius: 8px;
         font-weight: 600;
         cursor: pointer;

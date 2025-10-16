@@ -5,9 +5,11 @@
 
 <section class="landing">
     <div class="landing__content">
-        <span class="landing__badge">Welcome to Mongo Users</span>
-        <h1>All of your users in one delightful place</h1>
-        <p class="landing__lead">Build and maintain your MongoDB-backed community with an elegant dashboard that keeps everything organised and secure.</p>
+        <span class="landing__badge">Welcome to the Salary Calculator</span>
+        <h1>Salary Calculator – a clear breakdown of your pay</h1>
+        <p class="landing__lead">
+            Enter your hours, monthly salary, your tax percentage, and any allowances/bonuses — you’ll get a clear breakdown of gross and net pay.
+        </p>
 
         <AuthorizeView Context="authState">
             <Authorized>
@@ -18,25 +20,11 @@
                 <div class="landing__actions">
                     <button type="button" class="landing__primary" @onclick="TriggerLogin">Log in to get started</button>
                 </div>
-                <p class="landing__footnote">Need access? Use the login window to create a user and unlock the full dashboard.</p>
+                <p class="landing__footnote">Don't have an account? Use the login window to create a user.</p>
             </NotAuthorized>
         </AuthorizeView>
     </div>
 
-    <div class="landing__visual">
-        <div class="landing__card">
-            <h2>User analytics at a glance</h2>
-            <ul>
-                <li>Secure BCrypt hashing keeps credentials safe at rest.</li>
-                <li>Manage MongoDB users with quick create and delete flows.</li>
-                <li>Responsive interface tailored for modern teams.</li>
-            </ul>
-            <div class="landing__meta">
-                <span class="landing__meta-label">Access control</span>
-                <p>Only authenticated users can open the management tools beyond this page.</p>
-            </div>
-        </div>
-    </div>
 </section>
 
 @code {
@@ -136,43 +124,4 @@
             box-shadow: 0 2px 0 var(--sage-800);
         }
 
-
-    .landing a {
-        color: var(--sage-700);
-        text-decoration-color: var(--sage-400);
-    }
-
-    .landing input[type="text"],
-    .landing input[type="number"],
-    .landing input[type="email"],
-    .landing select,
-    .landing textarea {
-        background: #fff;
-        border: 1px solid var(--sage-300);
-        padding: .55rem .7rem;
-        outline: none;
-        box-shadow: inset 0 1px 3px rgba(0,0,0,.04);
-    }
-
-    .landing label {
-        color: var(--ink);
-    }
-
-    .landing__actions {
-        display: flex;
-        gap: .75rem;
-        align-items: center;
-    }
-
-    @@media (max-width: 640px) {
-        .landing__content
-
-    {
-        padding: 1.5rem 1.25rem;
-    }
-
-    .landing__actions {
-        flex-wrap: wrap;
-    }
-    }
 </style>
